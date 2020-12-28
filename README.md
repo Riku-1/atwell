@@ -8,6 +8,7 @@ This is an example of api by golang.
 - OpenAPI(Swagger)
 - CI
 - Testing
+- Docker
 
 ### API Documentation
 API documentation is in docs folder.  
