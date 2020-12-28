@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"golang-api/repository"
+	"golang-api/usecase"
 	"golang-api/web/handler"
 	"log"
 	"net/http"
@@ -13,7 +15,11 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 
 func handleRequests() {
 	http.HandleFunc("/", homePage)
-	handler.HandleArticleRequest()
+
+	au := usecase.NewArticleUsecase(repository.NewDummyArticleRepository())
+	ah := handler.ArticleHandler{Usecase: au}
+	handler.HandleArticleRequest(ah)
+
 	log.Fatal(http.ListenAndServe(":10000", nil))
 }
 
