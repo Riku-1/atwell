@@ -8,6 +8,8 @@ blog
 - pagination
 - elastic search
 - test
+- swagger
+- docker
 
 ## design
 clean architecture

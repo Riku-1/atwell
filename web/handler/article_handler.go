@@ -12,6 +12,12 @@ type ArticleHandler struct {
 }
 
 // getAllArticles returns all articles in system.
+// @Description get all articles
+// @ID get-articles
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} []domain.Article
+// @Router /articles [get]
 func (h ArticleHandler) getAllArticles(w http.ResponseWriter, r *http.Request) {
 	articles, err := h.Usecase.GetAll()
 
