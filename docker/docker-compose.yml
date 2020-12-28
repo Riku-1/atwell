@@ -1,0 +1,35 @@
+version: '3'
+services:
+  db:
+    image: mariadb
+    restart: always
+    volumes:
+      - ./volume/db:/var/lib/mysql
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+      MYSQL_DATABASE: sample_project
+
+  dbClient:
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+      PMA_HOST: db
+    ports:
+      - 8085:80
+    depends_on:
+      - db
+
+  go:
+    image: golang:1.15.5-alpine3.12
+    volumes:
+      - ../:/code
+    working_dir: /code
+    command: go run main.go
+    restart: always
+    ports:
+      - 10000:10000
+    depends_on:
+      - db
