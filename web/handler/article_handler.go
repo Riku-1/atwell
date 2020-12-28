@@ -3,18 +3,17 @@ package handler
 import (
 	"encoding/json"
 	"golang-api/domain"
-	"golang-api/usecase"
 	"net/http"
 )
 
-// articleHandler is struct for handling http request about articles.
-type articleHandler struct {
-	usecase domain.ArticleUsecase
+// ArticleHandler is struct for handling http request about articles.
+type ArticleHandler struct {
+	Usecase domain.ArticleUsecase
 }
 
 // getAllArticles returns all articles in system.
-func (h articleHandler) getAllArticles(w http.ResponseWriter, r *http.Request) {
-	articles, err := h.usecase.GetAll()
+func (h ArticleHandler) getAllArticles(w http.ResponseWriter, r *http.Request) {
+	articles, err := h.Usecase.GetAll()
 
 	if err != nil {
 		// TODO
@@ -25,10 +24,7 @@ func (h articleHandler) getAllArticles(w http.ResponseWriter, r *http.Request) {
 }
 
 // HandleArticleRequest set up routes for requests.
-func HandleArticleRequest() {
-	h := articleHandler{
-		usecase.NewArticleUsecase(),
-	}
+func HandleArticleRequest(h ArticleHandler) {
 
 	http.HandleFunc("/articles", h.getAllArticles)
 }

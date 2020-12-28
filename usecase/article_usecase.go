@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"golang-api/domain"
-	"golang-api/repository"
 )
 
 // articleUsecase ...
@@ -11,8 +10,7 @@ type articleUsecase struct {
 }
 
 // NewArticleUsecase provides a articleUsecase struct
-func NewArticleUsecase() domain.ArticleUsecase {
-	r := repository.NewDummyArticleRepository()
+func NewArticleUsecase(r domain.ArticleRepository) domain.ArticleUsecase {
 	return articleUsecase{r}
 }
 
