@@ -23,6 +23,9 @@ func handleRequests() {
 	log.Fatal(http.ListenAndServe(":10000", nil))
 }
 
+// @title golang-sample-api
+// @version 1.0
+// @description This is a api sample project using  golang.
 func main() {
 	handleRequests()
 }
