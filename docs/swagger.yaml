@@ -1,0 +1,32 @@
+definitions:
+  domain.Article:
+    properties:
+      Title:
+        type: string
+      body:
+        type: string
+      publish_date:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: This is a api sample project using  golang.
+  title: golang-sample-api
+  version: "1.0"
+paths:
+  /articles:
+    get:
+      consumes:
+      - application/json
+      description: get all articles
+      operationId: get-articles
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Article'
+            type: array
+swagger: "2.0"

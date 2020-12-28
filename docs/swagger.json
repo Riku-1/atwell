@@ -1,0 +1,50 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a api sample project using  golang.",
+        "title": "golang-sample-api",
+        "contact": {},
+        "version": "1.0"
+    },
+    "paths": {
+        "/articles": {
+            "get": {
+                "description": "get all articles",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "operationId": "get-articles",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.Article"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "domain.Article": {
+            "type": "object",
+            "properties": {
+                "Title": {
+                    "type": "string"
+                },
+                "body": {
+                    "type": "string"
+                },
+                "publish_date": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
