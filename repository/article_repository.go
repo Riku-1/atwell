@@ -2,26 +2,22 @@ package repository
 
 import (
 	"golang-api/domain"
-	"time"
+	"gorm.io/gorm"
 )
 
-// dummyArticleRepository is a dummy repository and will be replaced by another one which use database.
-type dummyArticleRepository struct {
+// mysqlArticleRepository is a article repository using mysql.
+type mysqlArticleRepository struct {
+	db *gorm.DB
 }
 
-// NewDummyArticleRepository provides a dummyArticleRepository struct.
-func NewDummyArticleRepository() domain.ArticleRepository {
-	return dummyArticleRepository{}
+// NewMysqlArticleRepository provides a mysqlArticleRepository struct.
+func NewMysqlArticleRepository(db *gorm.DB) domain.ArticleRepository {
+	return mysqlArticleRepository{db}
 }
 
-func (d dummyArticleRepository) GetAll() (res []domain.Article, err error) {
-	res = []domain.Article{
-		{
-			Title:       "aaa",
-			Body:        "aaa",
-			PublishDate: time.Date(2020, time.December, 20, 12, 00, 00, 0, time.UTC),
-		},
-	}
+// GetAll returns all articles.
+func (r mysqlArticleRepository) GetAll() (res []domain.Article, err error) {
+	err = r.db.Find(&res).Error
 
 	return
 }

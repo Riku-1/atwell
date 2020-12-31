@@ -6,10 +6,13 @@ import (
 	"golang-api/web/handler"
 	"log"
 	"net/http"
+
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
-func handleRequests() {
-	au := usecase.NewArticleUsecase(repository.NewDummyArticleRepository())
+func handleRequests(db *gorm.DB) {
+	au := usecase.NewArticleUsecase(repository.NewMysqlArticleRepository(db))
 	ah := handler.ArticleHandler{Usecase: au}
 	handler.HandleArticleRequest(ah)
 
@@ -20,5 +23,11 @@ func handleRequests() {
 // @version 1.0
 // @description This is a api sample project using  golang.
 func main() {
-	handleRequests()
+	dsn := "root:example@tcp(127.0.0.1:3306)/sample_project?charset=utf8mb4&parseTime=True&loc=Local"
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	if err != nil {
+		panic(err)
+	}
+
+	handleRequests(db)
 }

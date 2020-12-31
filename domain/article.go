@@ -1,9 +1,14 @@
 package domain
 
-import "time"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 // Article is an interface of articles of blog.
 type Article struct {
+	gorm.Model
 	Title       string    `json:"Title"`
 	Body        string    `json:"body"`
 	PublishDate time.Time `json:"publish_date"`
