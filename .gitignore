@@ -26,3 +26,6 @@
 
 # ide
 .idea
+
+# configuration
+config.yml
