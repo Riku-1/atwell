@@ -15,10 +15,6 @@ import (
 )
 
 func handleRequests(db *gorm.DB) {
-	au := usecase.NewArticleUsecase(repository.NewMysqlArticleRepository(db))
-	ah := handler.ArticleHandler{Usecase: au}
-	handler.HandleArticleRequest(ah)
-
 	tu := usecase.NewTweetUsecase(repository.NewMysqlTweetRepository(db))
 	th := handler.TweetHandler{Usecase: tu}
 	handler.HandleTweetRequest(th)
