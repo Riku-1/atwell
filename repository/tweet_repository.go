@@ -23,3 +23,11 @@ func (r mysqlTweetRepository) Get(from time.Time, to time.Time) (res []domain.Tw
 
 	return
 }
+
+// Create creates new tweet.
+func (r mysqlTweetRepository) Create(comment string) (tweet domain.Tweet, err error) {
+	tweet = domain.Tweet{Comment: comment}
+	err = r.db.Create(&tweet).Error
+
+	return
+}
