@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"time"
+
 	"gorm.io/gorm"
 )
 
@@ -10,9 +12,9 @@ type Tweet struct {
 }
 
 type TweetUsecase interface {
-	Get() ([]Tweet, error)
+	Get(from time.Time, to time.Time) ([]Tweet, error)
 }
 
 type TweetRepository interface {
-	Get() ([]Tweet, error)
+	Get(from time.Time, to time.Time) ([]Tweet, error)
 }

@@ -1,6 +1,9 @@
 package usecase
 
-import "golang-api/domain"
+import (
+	"golang-api/domain"
+	"time"
+)
 
 // tweetUsecase ...
 type tweetUsecase struct {
@@ -13,8 +16,8 @@ func NewTweetUsecase(r domain.TweetRepository) domain.TweetUsecase {
 }
 
 // Get ...
-func (u tweetUsecase) Get() (res []domain.Tweet, err error) {
-	res, err = u.repository.Get()
+func (u tweetUsecase) Get(from time.Time, to time.Time) (res []domain.Tweet, err error) {
+	res, err = u.repository.Get(from, to)
 
 	if err != nil {
 		//TODO
