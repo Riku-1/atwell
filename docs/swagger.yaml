@@ -41,4 +41,16 @@ paths:
             items:
               $ref: '#/definitions/domain.Tweet'
             type: array
+    post:
+      consumes:
+      - application/json
+      description: create new tweet.
+      operationId: post-tweets
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Tweet'
 swagger: "2.0"

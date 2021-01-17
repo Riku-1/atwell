@@ -45,6 +45,24 @@ var doc = `{
                         }
                     }
                 }
+            },
+            "post": {
+                "description": "create new tweet.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "operationId": "post-tweets",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Tweet"
+                        }
+                    }
+                }
             }
         }
     },

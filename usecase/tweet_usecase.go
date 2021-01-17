@@ -19,10 +19,12 @@ func NewTweetUsecase(r domain.TweetRepository) domain.TweetUsecase {
 func (u tweetUsecase) Get(from time.Time, to time.Time) (res []domain.Tweet, err error) {
 	res, err = u.repository.Get(from, to)
 
-	if err != nil {
-		//TODO
-		return
-	}
+	return
+}
+
+// Create ...
+func (u tweetUsecase) Create(comment string) (res domain.Tweet, err error) {
+	res, err = u.repository.Create(comment)
 
 	return
 }

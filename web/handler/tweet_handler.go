@@ -38,7 +38,42 @@ func (h TweetHandler) get(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(tweets)
 }
 
-// HandleArticleRequest set up routes for requests.
+// create creates new tweet.
+// @Description create new tweet.
+// @ID post-tweets
+// @Accept  json
+// @Produce  json
+// @Params comment formData string true "comment is tweet content"
+// @Success 200 {object} domain.Tweet
+// @Router /tweets [post]
+func (h TweetHandler) create(w http.ResponseWriter, r *http.Request) {
+	comment := r.FormValue("comment")
+
+	tweet, err := h.Usecase.Create(comment)
+
+	if err != nil {
+		// TODO
+		panic(err)
+	}
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	json.NewEncoder(w).Encode(tweet)
+}
+
+// tweetsRouting set up "/tweets" routes for requests.
+func (h TweetHandler) tweetsRouting(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		h.get(w, r)
+	}
+
+	if r.Method == "POST" {
+		h.create(w, r)
+	}
+
+	// TODO: error response
+}
+
+// HandleTweetRequest set up routes for requests.
 func HandleTweetRequest(h TweetHandler) {
-	http.HandleFunc("/tweets", h.get)
+	http.HandleFunc("/tweets", h.tweetsRouting)
 }
