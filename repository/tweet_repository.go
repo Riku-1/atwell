@@ -2,6 +2,8 @@ package repository
 
 import (
 	"golang-api/domain"
+	"time"
+
 	"gorm.io/gorm"
 )
 
@@ -16,8 +18,8 @@ func NewMysqlTweetRepository(db *gorm.DB) domain.TweetRepository {
 }
 
 // Get returns tweets.
-func (r mysqlTweetRepository) Get() (res []domain.Tweet, err error) {
-	err = r.db.Find(&res).Error
+func (r mysqlTweetRepository) Get(from time.Time, to time.Time) (res []domain.Tweet, err error) {
+	err = r.db.Where("created_at BETWEEN ? AND ?", from, to).Find(&res).Error
 
 	return
 }
