@@ -7,23 +7,23 @@
         "version": "1.0"
     },
     "paths": {
-        "/articles": {
+        "/tweets": {
             "get": {
-                "description": "get all articles",
+                "description": "get tweets from database",
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
                     "application/json"
                 ],
-                "operationId": "get-articles",
+                "operationId": "get-tweets",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/domain.Article"
+                                "$ref": "#/definitions/domain.Tweet"
                             }
                         }
                     }
@@ -32,17 +32,35 @@
         }
     },
     "definitions": {
-        "domain.Article": {
+        "domain.Tweet": {
             "type": "object",
             "properties": {
-                "Title": {
+                "comment": {
                     "type": "string"
                 },
-                "body": {
+                "createdAt": {
                     "type": "string"
                 },
-                "publish_date": {
+                "deletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "updatedAt": {
                     "type": "string"
+                }
+            }
+        },
+        "gorm.DeletedAt": {
+            "type": "object",
+            "properties": {
+                "time": {
+                    "type": "string"
+                },
+                "valid": {
+                    "description": "Valid is true if Time is not NULL",
+                    "type": "boolean"
                 }
             }
         }
