@@ -28,3 +28,8 @@ func (u tweetUsecase) Create(comment string) (res domain.Tweet, err error) {
 
 	return
 }
+
+// Delete ...
+func (u tweetUsecase) Delete(id int) error {
+	return u.repository.Delete(id)
+}
