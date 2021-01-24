@@ -1,11 +1,12 @@
 package handler
 
 import (
-	"encoding/json"
 	"golang-api/domain"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/labstack/echo/v4"
 )
 
 // TweetHandler is struct for handling http request about tweets.
@@ -22,9 +23,10 @@ type TweetHandler struct {
 // @Params to query string true "tweets search between 'from' value and 'to' value"
 // @Success 200 {object} []domain.Tweet
 // @Router /tweets [get]
-func (h TweetHandler) get(w http.ResponseWriter, r *http.Request) {
-	from := r.URL.Query().Get("from")
-	to := r.URL.Query().Get("to")
+func (h TweetHandler) get(c echo.Context) error {
+	// TODO: when from and to is empty
+	from := c.QueryParam("from")
+	to := c.QueryParam("to")
 	_from, _ := time.ParseInLocation("2006-01-02", from, time.Local)
 	_to, _ := time.ParseInLocation("2006-01-02", to, time.Local)
 	// set by twelve o'clock midnight of the next day.
@@ -35,8 +37,8 @@ func (h TweetHandler) get(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	json.NewEncoder(w).Encode(tweets)
+	c.Response().Header().Set("Access-Control-Allow-Origin", "*")
+	return c.JSON(http.StatusOK, tweets)
 }
 
 // create creates new tweet.
@@ -47,8 +49,8 @@ func (h TweetHandler) get(w http.ResponseWriter, r *http.Request) {
 // @Params comment formData string true "comment is tweet content"
 // @Success 200 {object} domain.Tweet
 // @Router /tweets [post]
-func (h TweetHandler) create(w http.ResponseWriter, r *http.Request) {
-	comment := r.FormValue("comment")
+func (h TweetHandler) create(c echo.Context) error {
+	comment := c.FormValue("comment")
 
 	tweet, err := h.Usecase.Create(comment)
 
@@ -57,40 +59,26 @@ func (h TweetHandler) create(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	json.NewEncoder(w).Encode(tweet)
+	c.Response().Header().Set("Access-Control-Allow-Origin", "*")
+	return c.JSON(http.StatusOK, tweet)
 }
 
-func (h TweetHandler) delete(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "DELETE" {
-		// TODO: error response
-	}
-
-	id, _ := strconv.Atoi(r.URL.Query().Get("id"))
+func (h TweetHandler) delete(c echo.Context) error {
+	id, _ := strconv.Atoi(c.QueryParam("id"))
 	err := h.Usecase.Delete(id)
 	if err != nil {
 		// TODO: error response
 	}
 
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	json.NewEncoder(w).Encode(nil)
-}
-
-// tweetsRouting set up "/tweets" routes for requests.
-func (h TweetHandler) tweetsRouting(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "GET" {
-		h.get(w, r)
-	}
-
-	if r.Method == "POST" {
-		h.create(w, r)
-	}
-
-	// TODO: error response
+	c.Response().Header().Set("Access-Control-Allow-Origin", "*")
+	return c.JSON(http.StatusOK, nil)
 }
 
 // HandleTweetRequest set up routes for requests.
-func HandleTweetRequest(h TweetHandler) {
-	http.HandleFunc("/tweets", h.tweetsRouting)
-	http.HandleFunc("/tweets/{id}", h.tweetsRouting)
+func HandleTweetRequest(h TweetHandler, e *echo.Echo) {
+	g := e.Group("/tweets")
+
+	g.GET("", h.get)
+	g.POST("", h.create)
+	g.DELETE("/:id", h.delete)
 }

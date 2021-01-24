@@ -7,19 +7,18 @@ import (
 	"golang-api/usecase"
 	"golang-api/web/handler"
 	"log"
-	"net/http"
 
+	"github.com/labstack/echo/v4"
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
-func handleRequests(db *gorm.DB) {
+func handleRequests(db *gorm.DB, e *echo.Echo) {
 	tu := usecase.NewTweetUsecase(repository.NewMysqlTweetRepository(db))
 	th := handler.TweetHandler{Usecase: tu}
-	handler.HandleTweetRequest(th)
-
-	log.Fatal(http.ListenAndServe(":10000", nil))
+	handler.HandleTweetRequest(th, e)
+	log.Fatal(e.Start(":10000"))
 }
 
 // @title golang-sample-api
@@ -54,5 +53,6 @@ func main() {
 		panic(err)
 	}
 
-	handleRequests(db)
+	e := echo.New()
+	handleRequests(db, e)
 }
