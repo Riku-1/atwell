@@ -5,6 +5,7 @@ go 1.15
 require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/go-openapi/spec v0.20.0 // indirect
+	github.com/labstack/echo/v4 v4.1.17
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.6.1

@@ -24,10 +24,16 @@ func (r mysqlTweetRepository) Get(from time.Time, to time.Time) (res []domain.Tw
 	return
 }
 
-// Create creates new tweet.
+// Create creates a new tweet.
 func (r mysqlTweetRepository) Create(comment string) (tweet domain.Tweet, err error) {
 	tweet = domain.Tweet{Comment: comment}
 	err = r.db.Create(&tweet).Error
 
 	return
+}
+
+// Delete deletes a tweet specified by id.
+func (r mysqlTweetRepository) Delete(id int) error {
+	result := r.db.Delete(&domain.Tweet{}, id)
+	return result.Error
 }

@@ -64,6 +64,23 @@ var doc = `{
                     }
                 }
             }
+        },
+        "/tweets/{id}": {
+            "delete": {
+                "description": "delete new tweet.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "operationId": "delete-tweets-id",
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
         }
     },
     "definitions": {

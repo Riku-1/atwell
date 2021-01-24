@@ -53,4 +53,15 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/domain.Tweet'
+  /tweets/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete new tweet.
+      operationId: delete-tweets-id
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
 swagger: "2.0"
