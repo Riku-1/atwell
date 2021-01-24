@@ -68,7 +68,7 @@ func (h TweetHandler) create(c echo.Context) error {
 // @ID delete-tweets-id
 // @Accept  json
 // @Produce  json
-// @Success 200
+// @Success 200 "OK"
 // @Router /tweets/{id} [delete]
 func (h TweetHandler) delete(c echo.Context) error {
 	id, _ := strconv.Atoi(c.QueryParam("id"))
