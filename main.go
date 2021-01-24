@@ -21,9 +21,9 @@ func handleRequests(db *gorm.DB, e *echo.Echo) {
 	log.Fatal(e.Start(":10000"))
 }
 
-// @title golang-sample-api
-// @version 1.0
-// @description This is a api sample project using  golang.
+// @title atwell
+// @version 0.1.0
+// @description Atwell is a Twitter api for one person.
 func main() {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
