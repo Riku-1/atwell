@@ -23,7 +23,7 @@ func handleRequests(db *gorm.DB, e *echo.Echo) {
 
 // @title atwell
 // @version 0.1.0
-// @description Atwell is a Twitter api for one person.
+// @description Atwell is a Twitter for one person.
 func main() {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
