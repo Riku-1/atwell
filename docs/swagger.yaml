@@ -63,5 +63,5 @@ paths:
       - application/json
       responses:
         "200":
-          description: ""
+          description: OK
 swagger: "2.0"

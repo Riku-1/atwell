@@ -77,7 +77,7 @@ var doc = `{
                 "operationId": "delete-tweets-id",
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "OK"
                     }
                 }
             }
