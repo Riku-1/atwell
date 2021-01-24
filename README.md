@@ -12,7 +12,7 @@ Atwell is a Twitter for one person.
 ## API Documentation
 https://riku-1.github.io/atwell/
 
-The documentation is created by [swaggo](https://github.com/swaggo/swag).
+The documentation is created by [swag](https://github.com/swaggo/swag).  
 Swag is a tool converting Go annotations to Swagger Documentation.
 
 ```shell
