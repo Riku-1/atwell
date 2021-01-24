@@ -63,6 +63,13 @@ func (h TweetHandler) create(c echo.Context) error {
 	return c.JSON(http.StatusOK, tweet)
 }
 
+// delete deletes new tweet.
+// @Description delete new tweet.
+// @ID delete-tweets-id
+// @Accept  json
+// @Produce  json
+// @Success 200
+// @Router /tweets/{id} [delete]
 func (h TweetHandler) delete(c echo.Context) error {
 	id, _ := strconv.Atoi(c.QueryParam("id"))
 	err := h.Usecase.Delete(id)
