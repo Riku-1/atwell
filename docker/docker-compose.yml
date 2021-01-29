@@ -2,7 +2,7 @@ version: '3'
 services:
   go:
     image: riku1/atwell:latest
-    working_dir: /user/src/app
+    working_dir: /usr/src/app
     command: ./atwell
     restart: always
     ports:
