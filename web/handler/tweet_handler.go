@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"golang-api/domain"
+	"atwell/domain"
 	"net/http"
 	"strconv"
 	"time"

@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"golang-api/domain"
+	"atwell/domain"
 	"time"
 
 	"gorm.io/gorm"

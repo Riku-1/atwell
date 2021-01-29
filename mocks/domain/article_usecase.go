@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	domain "golang-api/domain"
+	domain "atwell/domain"
 
 	mock "github.com/stretchr/testify/mock"
 )

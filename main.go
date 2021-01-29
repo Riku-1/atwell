@@ -1,11 +1,11 @@
 package main
 
 import (
+	"atwell/config"
+	"atwell/repository"
+	"atwell/usecase"
+	"atwell/web/handler"
 	"fmt"
-	"golang-api/config"
-	"golang-api/repository"
-	"golang-api/usecase"
-	"golang-api/web/handler"
 	"log"
 
 	"github.com/kelseyhightower/envconfig"

@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	"golang-api/domain"
+	"atwell/domain"
 	"time"
 )
 
