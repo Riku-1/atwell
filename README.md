@@ -9,6 +9,34 @@ Atwell is a Twitter for one person.
 - Testing
 - Docker
 
+## How to use
+### Set up
+#### Database
+Create a mysql database and do the migration by the following command.
+```shell
+# migration
+goose mysql "user:pass@(host:port)/db_name?parseTime=true" up
+
+# confirm to apply sql
+goose mysql "user:pass@(host:port)/db_name?parseTime=true" status
+```
+
+### Configuration
+Please set following environment variables.
+
+- ATWELL_DB_HOST
+- ATWELL_DB_PORT
+- ATWELL_DB_USER
+- ATWELL_DB_PASSWORD
+- ATWELL_DB_DBNAME
+
+### Start server
+```shell
+go run main.go
+```
+
+Or you can use docker integration. Please see [docker-compose file](./docker/docker-compose.yml).
+
 ## API Documentation
 https://riku-1.github.io/atwell/
 
@@ -18,22 +46,5 @@ Swag is a tool converting Go annotations to Swagger Documentation.
 ```shell
 swag init --parseDependency --parseInternal
 ```
-
-## How to use
-### Set up
-#### Database
-TODO: Create migration description
-
-Set up docker-compose environment
-
-### Start server
-```shell
-docker-compose up -d
-```
-
 ## Using Stacks/Libraries
-|Stack|Description|
-|---|---|
-|[Gorm](https://gorm.io/)|Golang ORM|
-|gin||
-|goose|Golang ORM|
+
