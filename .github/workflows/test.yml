@@ -51,3 +51,6 @@ jobs:
           ATWELL_TEST_DB_USER: root
           ATWELL_TEST_DB_PASSWORD: example
           ATWELL_TEST_DB_DBNAME: atwell
+
+      - name: Send coverage
+        run: bash <(curl -s https://codecov.io/bash)
