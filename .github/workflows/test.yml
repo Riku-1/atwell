@@ -11,8 +11,16 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:5.7
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ROOT_PASSWORD: example
+          MYSQL_DATABASE: atwell
+        options: --health-cmd "mysqladmin ping" --health-interval 20s --health-timeout 10s --health-retries 10
     steps:
-
       - name: Set up Go 1.x
         uses: actions/setup-go@v2
         with:
@@ -29,5 +37,20 @@ jobs:
               curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
               dep ensure
           fi
+
+      - name: Execute migrations
+        run: |
+          go get -u github.com/pressly/goose/cmd/goose
+          goose -dir ./migration mysql "root:example@/atwell?parseTime=true" up
+
       - name: Test
-        run: go test -v ./...
+        run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+        env:
+          ATWELL_TEST_DB_HOST: localhost
+          ATWELL_TEST_DB_PORT: 3306
+          ATWELL_TEST_DB_USER: root
+          ATWELL_TEST_DB_PASSWORD: example
+          ATWELL_TEST_DB_DBNAME: atwell
+
+      - name: Send coverage
+        run: bash <(curl -s https://codecov.io/bash)

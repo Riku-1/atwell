@@ -3,10 +3,8 @@ module atwell
 go 1.15
 
 require (
-	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/go-openapi/spec v0.20.2 // indirect
-	github.com/go-sql-driver/mysql v1.5.0 // indirect
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/labstack/echo/v4 v4.1.17
 	github.com/stretchr/objx v0.1.1 // indirect

@@ -14,8 +14,8 @@ type TweetHandler struct {
 	Usecase domain.TweetUsecase
 }
 
-// get returns tweets from database.
-// @Description get tweets from database
+// Get returns tweets from database.
+// @Description Get tweets from database
 // @ID get-tweets
 // @Accept  json
 // @Produce  json
@@ -23,7 +23,7 @@ type TweetHandler struct {
 // @Params to query string true "tweets search between 'from' value and 'to' value"
 // @Success 200 {object} []domain.Tweet
 // @Router /tweets [get]
-func (h TweetHandler) get(c echo.Context) error {
+func (h TweetHandler) Get(c echo.Context) error {
 	// TODO: when from and to is empty
 	from := c.QueryParam("from")
 	to := c.QueryParam("to")
@@ -41,7 +41,7 @@ func (h TweetHandler) get(c echo.Context) error {
 	return c.JSON(http.StatusOK, tweets)
 }
 
-// create creates new tweet.
+// Create creates new tweet.
 // @Description create new tweet.
 // @ID post-tweets
 // @Accept  json
@@ -49,7 +49,7 @@ func (h TweetHandler) get(c echo.Context) error {
 // @Params comment formData string true "comment is tweet content"
 // @Success 200 {object} domain.Tweet
 // @Router /tweets [post]
-func (h TweetHandler) create(c echo.Context) error {
+func (h TweetHandler) Create(c echo.Context) error {
 	comment := c.FormValue("comment")
 
 	tweet, err := h.Usecase.Create(comment)
@@ -63,15 +63,15 @@ func (h TweetHandler) create(c echo.Context) error {
 	return c.JSON(http.StatusOK, tweet)
 }
 
-// delete deletes new tweet.
+// Delete deletes new tweet.
 // @Description delete new tweet.
 // @ID delete-tweets-id
 // @Accept  json
 // @Produce  json
 // @Success 200 "OK"
 // @Router /tweets/{id} [delete]
-func (h TweetHandler) delete(c echo.Context) error {
-	id, _ := strconv.Atoi(c.QueryParam("id"))
+func (h TweetHandler) Delete(c echo.Context) error {
+	id, _ := strconv.Atoi(c.Param("id"))
 	err := h.Usecase.Delete(id)
 	if err != nil {
 		// TODO: error response
@@ -85,7 +85,7 @@ func (h TweetHandler) delete(c echo.Context) error {
 func HandleTweetRequest(h TweetHandler, e *echo.Echo) {
 	g := e.Group("/tweets")
 
-	g.GET("", h.get)
-	g.POST("", h.create)
-	g.DELETE("/:id", h.delete)
+	g.GET("", h.Get)
+	g.POST("", h.Create)
+	g.DELETE("/:id", h.Delete)
 }
