@@ -1,6 +1,7 @@
 # Atwell
-
 Atwell is a Twitter for one person.
+
+[![codecov](https://codecov.io/gh/Riku-1/atwell/branch/master/graph/badge.svg?token=W46VWORCFS)](https://codecov.io/gh/Riku-1/atwell)
 
 ## Features
 - Clean architecture
