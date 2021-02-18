@@ -8,6 +8,7 @@ import (
 
 type Tweet struct {
 	gorm.Model
+	UserID  uint
 	Comment string
 }
 
