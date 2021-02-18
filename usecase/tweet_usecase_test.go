@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"atwell/domain"
-	"atwell/domain/mocks"
+	mocks "atwell/mocks/domain"
 	"testing"
 	"time"
 
