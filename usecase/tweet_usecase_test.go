@@ -51,11 +51,11 @@ func TestCreate(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	repo := new(mocks.TweetRepository)
-	targetId := 111
+	targetID := 111
 
-	repo.On("Delete", targetId).Return(nil).Once()
+	repo.On("Delete", targetID).Return(nil).Once()
 	u := NewTweetUsecase(repo)
-	err := u.Delete(targetId)
+	err := u.Delete(targetID)
 	if err != nil {
 		t.Fatal(err)
 	}
