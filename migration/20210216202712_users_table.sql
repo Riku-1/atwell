@@ -2,7 +2,7 @@
 -- SQL in this section is executed when the migration is applied.
 CREATE TABLE users (
     id int NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    email varchar(255) NOT NULL,
+    email varchar(255) NOT NULL UNIQUE,
     created_at datetime,
     updated_at datetime,
     deleted_at datetime

@@ -16,6 +16,11 @@ func handleRequests(db *gorm.DB, e *echo.Echo) {
 	tu := usecase.NewTweetUsecase(repository.NewMysqlTweetRepository(db))
 	th := handler.TweetHandler{Usecase: tu}
 	handler.HandleTweetRequest(th, e)
+
+	uu := usecase.NewAuthUsecase(repository.NewMysqlUserRepository(db))
+	uh := handler.AuthHandler{Usecase: uu}
+	handler.HandleAuthRequest(uh, e)
+
 	log.Fatal(e.Start(":10000"))
 }
 
