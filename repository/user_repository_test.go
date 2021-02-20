@@ -2,12 +2,18 @@ package repository
 
 import (
 	"atwell/domain"
+	"atwell/infrastructure"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateUser(t *testing.T) {
+func TestMysqlUserRepository_Create(t *testing.T) {
+	db, err := infrastructure.GetDevGormDB()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	tx := db.Begin()
 	r := NewMysqlUserRepository(tx)
 	resUser, err := r.Create("test_create_user")

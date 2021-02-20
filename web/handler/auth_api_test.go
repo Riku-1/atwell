@@ -1,9 +1,8 @@
 package handler
 
 import (
-	"atwell/config"
-	atwellDB "atwell/db"
 	"atwell/domain"
+	"atwell/infrastructure"
 	"atwell/repository"
 	"atwell/usecase"
 	"log"
@@ -19,12 +18,7 @@ import (
 )
 
 func getDB() *gorm.DB {
-	dc, err := config.GetTestDBConfig()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	db, err = atwellDB.CreateGormDB(&dc)
+	db, err := infrastructure.GetDevGormDB()
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -1,38 +1,20 @@
 package repository
 
 import (
-	"atwell/config"
-	adb "atwell/db"
 	"atwell/domain"
-	"log"
+	"atwell/infrastructure"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
-
-	"gorm.io/gorm"
 )
 
-var db *gorm.DB
-
-func setup() {
-	dc, err := config.GetTestDBConfig()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	db, err = adb.CreateGormDB(&dc)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-func TestMain(m *testing.M) {
-	setup()
-	m.Run()
-}
-
 func TestGet(t *testing.T) {
+	db, err := infrastructure.GetDevGormDB()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	tx := db.Begin()
 	defer func() {
 		tx.Rollback()
@@ -41,7 +23,7 @@ func TestGet(t *testing.T) {
 	testComment := "test_get"
 	from := time.Now()
 	tw := domain.Tweet{Comment: testComment}
-	err := tx.Create(&tw).Error
+	err = tx.Create(&tw).Error
 	if err != nil {
 		tx.Rollback()
 		t.Fatal(err)
@@ -52,6 +34,10 @@ func TestGet(t *testing.T) {
 }
 
 func TestCreate(t *testing.T) {
+	db, err := infrastructure.GetDevGormDB()
+	if err != nil {
+		t.Fatal(err)
+	}
 	tx := db.Begin()
 	defer func() {
 		tx.Rollback()
@@ -70,13 +56,18 @@ func TestCreate(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
+	db, err := infrastructure.GetDevGormDB()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	tx := db.Begin()
 	defer func() {
 		tx.Rollback()
 	}()
 	r := NewMysqlTweetRepository(tx)
 	tweet := domain.Tweet{Comment: "test_delete"}
-	err := tx.Create(&tweet).Error
+	err = tx.Create(&tweet).Error
 	if err != nil {
 		tx.Rollback()
 		t.Fatal(err)

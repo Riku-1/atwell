@@ -1,9 +1,8 @@
 package handler
 
 import (
-	"atwell/config"
-	atwellDB "atwell/db"
 	"atwell/domain"
+	"atwell/infrastructure"
 	"atwell/repository"
 	"atwell/usecase"
 	"encoding/json"
@@ -26,12 +25,7 @@ var db *gorm.DB
 var handler TweetHandler
 
 func setup() {
-	dc, err := config.GetTestDBConfig()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	db, err = atwellDB.CreateGormDB(&dc)
+	db, err := infrastructure.GetDevGormDB()
 	if err != nil {
 		log.Fatal(err)
 	}

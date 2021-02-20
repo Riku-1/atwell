@@ -1,8 +1,7 @@
 package main
 
 import (
-	"atwell/config"
-	adb "atwell/db"
+	"atwell/infrastructure"
 	"atwell/repository"
 	"atwell/usecase"
 	"atwell/web/handler"
@@ -28,12 +27,7 @@ func handleRequests(db *gorm.DB, e *echo.Echo) {
 // @version 0.1.0
 // @description Atwell is a Twitter for one person.
 func main() {
-	dc, err := config.GetPrdDBConfig()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	db, err := adb.CreateGormDB(&dc)
+	db, err := infrastructure.GetPrdGormDB()
 	if err != nil {
 		log.Fatal(err)
 	}
