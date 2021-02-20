@@ -15,6 +15,10 @@ func TestMysqlUserRepository_Create(t *testing.T) {
 	}
 
 	tx := db.Begin()
+	defer func() {
+		tx.Rollback()
+	}()
+
 	r := NewMysqlUserRepository(tx)
 	resUser, err := r.Create("test_create_user@email.com")
 
@@ -25,15 +29,11 @@ func TestMysqlUserRepository_Create(t *testing.T) {
 
 	// assert response
 	assert.Equal(t, "test_create_user@email.com", resUser.Email)
-	tx.Commit()
 
 	// confirm record created
 	var user domain.User
-	db.First(&user, resUser.ID)
+	tx.First(&user, resUser.ID)
 	assert.Equal(t, "test_create_user@email.com", user.Email)
-
-	// delete record
-	db.Delete(&domain.User{}, user.ID)
 }
 
 func TestMysqlUserRepository_Create_WhenCrateDuplicateUser(t *testing.T) {
@@ -55,10 +55,7 @@ func TestMysqlUserRepository_Create_WhenCrateDuplicateUser(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// create user by already exist email
+	// create user which email is already registered
 	_, err = r.Create("test_duplicate_user@email.com")
-	if err == nil {
-		t.Fatal("duplicate error should occur")
-	}
-	assert.Error(t, err, infrastructure.DuplicateError{})
+	assert.IsType(t, infrastructure.DuplicateError{}, err)
 }

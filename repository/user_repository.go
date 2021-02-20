@@ -24,7 +24,7 @@ func (r mysqlUserRepository) Create(email string) (domain.User, error) {
 	user := domain.User{Email: email}
 	err := r.db.Create(&user).Error
 
-	if err != nil && !strings.Contains("Duplicate entry", err.Error()) {
+	if err != nil && strings.Contains(err.Error(), "Duplicate entry") {
 		return domain.User{}, infrastructure.DuplicateError{}
 	}
 
