@@ -28,7 +28,11 @@ func TestAuthHandler_SignIn(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	h := getAuthHandler(db)
+	tx := db.Begin()
+	defer func() {
+		tx.Rollback()
+	}()
+	h := getAuthHandler(tx)
 
 	// request
 	e := echo.New()
@@ -43,6 +47,7 @@ func TestAuthHandler_SignIn(t *testing.T) {
 	c.SetPath("/sign-in")
 	err = h.SignIn(c)
 	if err != nil {
+		tx.Rollback()
 		t.Fatal(err)
 	}
 
@@ -50,11 +55,8 @@ func TestAuthHandler_SignIn(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rec.Code)
 
 	var user domain.User
-	db.First(&user, "email = ?", email)
+	tx.First(&user, "email = ?", email)
 	assert.Equal(t, email, user.Email)
-
-	// delete record to avoid duplicate email
-	db.Unscoped().Delete(&user)
 }
 
 func TestAuthHandler_SignIn_WhenEmailIsEmpty(t *testing.T) {
@@ -62,7 +64,11 @@ func TestAuthHandler_SignIn_WhenEmailIsEmpty(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	h := getAuthHandler(db)
+	tx := db.Begin()
+	defer func() {
+		tx.Rollback()
+	}()
+	h := getAuthHandler(tx)
 
 	// request
 	e := echo.New()
@@ -77,6 +83,7 @@ func TestAuthHandler_SignIn_WhenEmailIsEmpty(t *testing.T) {
 	c.SetPath("/sign-in")
 	err = h.SignIn(c)
 	if err != nil {
+		tx.Rollback()
 		t.Fatal(err)
 	}
 
@@ -89,7 +96,11 @@ func TestAuthHandler_SignIn_DuplicateUser(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	h := getAuthHandler(db)
+	tx := db.Begin()
+	defer func() {
+		tx.Rollback()
+	}()
+	h := getAuthHandler(tx)
 
 	// request
 	e := echo.New()
@@ -104,6 +115,7 @@ func TestAuthHandler_SignIn_DuplicateUser(t *testing.T) {
 	c.SetPath("/sign-in")
 	err = h.SignIn(c)
 	if err != nil {
+		tx.Rollback()
 		t.Fatal(err)
 	}
 
@@ -115,17 +127,13 @@ func TestAuthHandler_SignIn_DuplicateUser(t *testing.T) {
 	c.SetPath("/sign-in")
 	err = h.SignIn(c)
 	if err != nil {
+		tx.Rollback()
 		t.Fatal(err)
 	}
 
 	// assertion
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
 	assert.Contains(t, rec.Body.String(), "user is already registered")
-
-	// delete record to avoid duplicate email
-	var user domain.User
-	db.First(&user, "email = ?", email)
-	db.Unscoped().Delete(&user)
 }
 
 func TestAuthHandler_Login(t *testing.T) {
@@ -205,7 +213,11 @@ func TestAuthHandler_Login_ByNoRegisteredUser(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	h := getAuthHandler(db)
+	tx := db.Begin()
+	defer func() {
+		tx.Rollback()
+	}()
+	h := getAuthHandler(tx)
 
 	// request
 	e := echo.New()
@@ -220,6 +232,7 @@ func TestAuthHandler_Login_ByNoRegisteredUser(t *testing.T) {
 	c.SetPath("/login")
 	err = h.Login(c)
 	if err != nil {
+		tx.Rollback()
 		t.Fatal(err)
 	}
 
@@ -229,6 +242,7 @@ func TestAuthHandler_Login_ByNoRegisteredUser(t *testing.T) {
 	var token string
 	err = json.Unmarshal(rec.Body.Bytes(), &token)
 	if err != nil {
+		tx.Rollback()
 		t.Fatal(err)
 	}
 	assert.Contains(t, rec.Body.String(), "user is not registered")
