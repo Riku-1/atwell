@@ -33,3 +33,24 @@ func (_m *UserRepository) Create(email string) (domain.User, error) {
 
 	return r0, r1
 }
+
+// Get provides a mock function with given fields: email
+func (_m *UserRepository) Get(email string) (domain.User, error) {
+	ret := _m.Called(email)
+
+	var r0 domain.User
+	if rf, ok := ret.Get(0).(func(string) domain.User); ok {
+		r0 = rf(email)
+	} else {
+		r0 = ret.Get(0).(domain.User)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(email)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}

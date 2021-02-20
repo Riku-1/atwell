@@ -11,10 +11,12 @@ type User struct {
 
 // UserRepository is a user repository interface.
 type UserRepository interface {
+	Get(email string) (User, error)
 	Create(email string) (User, error)
 }
 
 // UserUsecase is a user usecase interface.
 type UserUsecase interface {
 	SignIn(email string) (User, error)
+	Login(email string) (string, error)
 }

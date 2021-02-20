@@ -30,3 +30,13 @@ func (r mysqlUserRepository) Create(email string) (domain.User, error) {
 
 	return user, err
 }
+
+func (r mysqlUserRepository) Get(email string) (domain.User, error) {
+	var user domain.User
+	err := r.db.Where("email = ?", email).First(&user).Error
+	if err != nil && strings.Contains(err.Error(), "record not found") {
+		return domain.User{}, infrastructure.NotFoundError{}
+	}
+
+	return user, nil
+}
