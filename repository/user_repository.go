@@ -2,6 +2,8 @@ package repository
 
 import (
 	"atwell/domain"
+	"atwell/infrastructure"
+	"strings"
 
 	"gorm.io/gorm"
 )
@@ -21,6 +23,10 @@ func NewMysqlUserRepository(db *gorm.DB) domain.UserRepository {
 func (r mysqlUserRepository) Create(email string) (domain.User, error) {
 	user := domain.User{Email: email}
 	err := r.db.Create(&user).Error
+
+	if err != nil && !strings.Contains("Duplicate entry", err.Error()) {
+		return domain.User{}, infrastructure.DuplicateError{}
+	}
 
 	return user, err
 }
