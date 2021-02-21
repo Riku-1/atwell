@@ -31,7 +31,7 @@ func TestMysqlTweetRepository_Get(t *testing.T) {
 	tx.Create(&user)
 
 	r := NewMysqlTweetRepository(tx)
-	twList, err := r.Get(user, time.Now().AddDate(0, 0, -1), time.Now())
+	twList, err := r.Get(user, time.Now().AddDate(0, 0, -7), time.Now().AddDate(0, 0, 7))
 	if err != nil {
 		t.Fatal(err)
 	}
