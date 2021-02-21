@@ -35,8 +35,8 @@ type TweetHandler struct {
 func (h TweetHandler) Get(c echo.Context) error {
 	fromString := c.QueryParam("from")
 	toString := c.QueryParam("to")
-	from, _ := time.ParseInLocation("2006-01-02", fromString, time.Local)
-	to, _ := time.ParseInLocation("2006-01-02", toString, time.Local)
+	from, _ := time.ParseInLocation("2006-01-02", fromString, time.UTC)
+	to, _ := time.ParseInLocation("2006-01-02", toString, time.UTC)
 
 	// set by twelve o'clock midnight of the next day
 	to.AddDate(0, 0, 1)
