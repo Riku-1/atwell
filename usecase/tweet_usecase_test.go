@@ -82,7 +82,7 @@ func TestTweetUsecase_Get_WhenUserRepositoryError(t *testing.T) {
 	}
 }
 
-func TestTweetUsecase_Get_WhenTweetRepositoryError(t *testing.T) {
+func TestTweetUsecase_Create(t *testing.T) {
 	// mock
 	userRepository := new(mocks.UserRepository)
 	email := "test_get@email.com"
@@ -93,31 +93,45 @@ func TestTweetUsecase_Get_WhenTweetRepositoryError(t *testing.T) {
 	)
 
 	tweetRepository := new(mocks.TweetRepository)
-	mockedTwList := make([]domain.Tweet, 0)
-	mockedTwList = append(
-		mockedTwList,
-		domain.Tweet{Comment: "test_get"},
-	)
-	from := time.Now()
-	to := time.Now()
-	tweetRepository.On("Get", mockUser, from, to).Return(
-		mockedTwList,
-		errors.New("some error"), // error occurred
-	).Once()
+	comment := "tweet_usecase_create_test"
+	tweet := domain.Tweet{Comment: comment}
+	tweetRepository.On("Create", mockUser, comment).Return(tweet, nil).Once()
 
 	// call function
 	u := NewTweetUsecase(
 		tweetRepository,
 		userRepository,
 	)
-	_, err := u.Get(
-		email,
-		from,
-		to,
-	)
-	if err == nil {
-		t.Fatal("error should be returned when some error occurred")
+	resTweet, err := u.Create(email, comment)
+	if err != nil {
+		t.Fatal(err)
 	}
+
+	assert.Equal(t, comment, resTweet.Comment)
+}
+
+func TestTweetUsecase_Create_WhenUserRepositoryError(t *testing.T) {
+	// mock
+	userRepository := new(mocks.UserRepository)
+	email := "test_get@email.com"
+	mockUser := domain.User{Email: email}
+	userRepository.On("Get", email).Return(
+		mockUser,
+		errors.New("some error"), // when error occurred
+	)
+
+	tweetRepository := new(mocks.TweetRepository)
+	comment := "tweet_usecase_create_test"
+	tweet := domain.Tweet{Comment: comment}
+	tweetRepository.On("Create", mockUser, comment).Return(tweet, nil).Once()
+
+	// call function
+	u := NewTweetUsecase(
+		tweetRepository,
+		userRepository,
+	)
+	_, err := u.Create(email, comment)
+	assert.NotNil(t, err)
 }
 
 //func TestCreate(t *testing.T) {

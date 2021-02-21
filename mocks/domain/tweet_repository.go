@@ -14,20 +14,20 @@ type TweetRepository struct {
 	mock.Mock
 }
 
-// Create provides a mock function with given fields: comment
-func (_m *TweetRepository) Create(comment string) (domain.Tweet, error) {
-	ret := _m.Called(comment)
+// Create provides a mock function with given fields: user, comment
+func (_m *TweetRepository) Create(user domain.User, comment string) (domain.Tweet, error) {
+	ret := _m.Called(user, comment)
 
 	var r0 domain.Tweet
-	if rf, ok := ret.Get(0).(func(string) domain.Tweet); ok {
-		r0 = rf(comment)
+	if rf, ok := ret.Get(0).(func(domain.User, string) domain.Tweet); ok {
+		r0 = rf(user, comment)
 	} else {
 		r0 = ret.Get(0).(domain.Tweet)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(comment)
+	if rf, ok := ret.Get(1).(func(domain.User, string) error); ok {
+		r1 = rf(user, comment)
 	} else {
 		r1 = ret.Error(1)
 	}

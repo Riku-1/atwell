@@ -48,17 +48,22 @@ func TestCreate(t *testing.T) {
 	defer func() {
 		tx.Rollback()
 	}()
-	r := NewMysqlTweetRepository(tx)
 
-	testComment := "test_creeate"
-	tweet, err := r.Create(testComment)
+	// create user
+	user := domain.User{
+		Email: "mysql_tweet_repository_test_create@email.com",
+	}
+	tx.Create(&user)
+
+	r := NewMysqlTweetRepository(tx)
+	tweet, err := r.Create(user, "tweet_repository_create_test")
 
 	if err != nil {
 		tx.Rollback()
 		t.Fatal(err)
 	}
 
-	assert.Equal(t, tweet.Comment, testComment)
+	assert.Equal(t, tweet.Comment, "tweet_repository_create_test")
 }
 
 func TestDelete(t *testing.T) {

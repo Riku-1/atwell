@@ -29,8 +29,11 @@ func (r mysqlTweetRepository) Get(user domain.User, from time.Time, to time.Time
 }
 
 // Create creates a new tweet.
-func (r mysqlTweetRepository) Create(comment string) (tweet domain.Tweet, err error) {
-	tweet = domain.Tweet{Comment: comment}
+func (r mysqlTweetRepository) Create(user domain.User, comment string) (tweet domain.Tweet, err error) {
+	tweet = domain.Tweet{
+		Comment: comment,
+		UserID:  user.ID,
+	}
 	err = r.db.Create(&tweet).Error
 
 	return

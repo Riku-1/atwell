@@ -14,20 +14,20 @@ type TweetUsecase struct {
 	mock.Mock
 }
 
-// Create provides a mock function with given fields: comment
-func (_m *TweetUsecase) Create(comment string) (domain.Tweet, error) {
-	ret := _m.Called(comment)
+// Create provides a mock function with given fields: email, comment
+func (_m *TweetUsecase) Create(email string, comment string) (domain.Tweet, error) {
+	ret := _m.Called(email, comment)
 
 	var r0 domain.Tweet
-	if rf, ok := ret.Get(0).(func(string) domain.Tweet); ok {
-		r0 = rf(comment)
+	if rf, ok := ret.Get(0).(func(string, string) domain.Tweet); ok {
+		r0 = rf(email, comment)
 	} else {
 		r0 = ret.Get(0).(domain.Tweet)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(comment)
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(email, comment)
 	} else {
 		r1 = ret.Error(1)
 	}

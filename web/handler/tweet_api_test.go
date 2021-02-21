@@ -146,31 +146,170 @@ func TestTweetHandler_Get_NoLogin(t *testing.T) {
 	assert.Error(t, err)
 }
 
-//func TestCreate(t *testing.T) {
-//	e := echo.New()
-//	f := make(url.Values)
-//	comment := "test_create"
-//	f.Set("comment", comment)
-//	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(f.Encode()))
-//	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
-//	rec := httptest.NewRecorder()
-//	c := e.NewContext(req, rec)
-//	c.SetPath("/tweets")
-//	err := handler.Create(c)
-//	if err != nil {
-//		t.Fatal(err)
-//	}
-//
-//	// assertion
-//	var tw domain.Tweet
-//	err = json.Unmarshal(rec.Body.Bytes(), &tw)
-//	if err != nil {
-//		t.Fatal(err)
-//	}
-//
-//	assert.Equal(t, http.StatusOK, rec.Code)
-//	assert.Equal(t, comment, tw.Comment)
-//}
+func TestTweetHandler_Create(t *testing.T) {
+	db, err := infrastructure.GetDevGormDB()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tx := db.Begin()
+	defer func() {
+		tx.Rollback()
+	}()
+
+	u := usecase.NewTweetUsecase(
+		repository.NewMysqlTweetRepository(tx),
+		repository.NewMysqlUserRepository(tx),
+	)
+	handler := TweetHandler{Usecase: u}
+
+	// create user
+	email := "tweet_handler_get_test@email.com"
+	user := domain.User{
+		Email:  email,
+		Tweets: []domain.Tweet{},
+	}
+	tx.Create(&user)
+
+	// get token
+	uu := usecase.NewAuthUsecase(repository.NewMysqlUserRepository(tx))
+	token, err := uu.Login(email)
+	if err != nil {
+		tx.Rollback()
+		t.Fatal(err)
+	}
+
+	// set request
+	e := echo.New()
+	query := make(url.Values)
+	testComment := "tweet_api_create_test"
+	query.Set("comment", testComment)
+	req := httptest.NewRequest(http.MethodPost, "/?"+query.Encode(), nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	req.Header.Set(
+		echo.HeaderAuthorization,
+		"Bearer "+token,
+	)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/tweets")
+
+	// do request
+	err = middleware.JWTWithConfig(middleware.JWTConfig{
+		SigningKey: []byte("secret"),
+	})(handler.Create)(c)
+	if err != nil {
+		tx.Rollback()
+		t.Fatal(err)
+	}
+
+	// assertion
+	var resTweet domain.Tweet
+	err = json.Unmarshal(rec.Body.Bytes(), &resTweet)
+	if err != nil {
+		tx.Rollback()
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.Equal(t, testComment, resTweet.Comment)
+}
+
+func TestTweetHandler_Create_WithEmptyComment(t *testing.T) {
+	db, err := infrastructure.GetDevGormDB()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tx := db.Begin()
+	defer func() {
+		tx.Rollback()
+	}()
+
+	u := usecase.NewTweetUsecase(
+		repository.NewMysqlTweetRepository(tx),
+		repository.NewMysqlUserRepository(tx),
+	)
+	handler := TweetHandler{Usecase: u}
+
+	// create user
+	email := "tweet_handler_get_test@email.com"
+	user := domain.User{
+		Email:  email,
+		Tweets: []domain.Tweet{},
+	}
+	tx.Create(&user)
+
+	// get token
+	uu := usecase.NewAuthUsecase(repository.NewMysqlUserRepository(tx))
+	token, err := uu.Login(email)
+	if err != nil {
+		tx.Rollback()
+		t.Fatal(err)
+	}
+
+	// set request
+	e := echo.New()
+	query := make(url.Values)
+	query.Set("comment", "") // empty comment
+	req := httptest.NewRequest(http.MethodPost, "/?"+query.Encode(), nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	req.Header.Set(
+		echo.HeaderAuthorization,
+		"Bearer "+token,
+	)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/tweets")
+
+	// do request
+	err = middleware.JWTWithConfig(middleware.JWTConfig{
+		SigningKey: []byte("secret"),
+	})(handler.Create)(c)
+	if err != nil {
+		tx.Rollback()
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+}
+
+func TestTweetHandler_Create_WithNoLogin(t *testing.T) {
+	db, err := infrastructure.GetDevGormDB()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tx := db.Begin()
+	defer func() {
+		tx.Rollback()
+	}()
+
+	u := usecase.NewTweetUsecase(
+		repository.NewMysqlTweetRepository(tx),
+		repository.NewMysqlUserRepository(tx),
+	)
+	handler := TweetHandler{Usecase: u}
+
+	// set request with no login
+	e := echo.New()
+	query := make(url.Values)
+	testComment := "tweet_api_create_test"
+	query.Set("comment", testComment)
+	req := httptest.NewRequest(http.MethodPost, "/?"+query.Encode(), nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/tweets")
+
+	// do request
+	err = middleware.JWTWithConfig(middleware.JWTConfig{
+		SigningKey: []byte("secret"),
+	})(handler.Create)(c)
+
+	assert.NotNil(t, err)
+}
+
 //
 //func TestDelete(t *testing.T) {
 //	tx := db.Begin()

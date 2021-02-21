@@ -25,7 +25,7 @@ type TweetHandler struct {
 // @Accept  json
 // @Produce  json
 // @Security ApiKeyAuth
-// @param Authorization header string true "Authorization"
+// @Param Authorization header string true "Authorization"
 // @Param from query string true "tweets search between 'from' value and 'to' value"
 // @Param to query string true "tweets search between 'from' value and 'to' value"
 // @Success 200 {object} []domain.Tweet
@@ -58,17 +58,25 @@ func (h TweetHandler) Get(c echo.Context) error {
 // @ID post-tweets
 // @Accept  json
 // @Produce  json
-// @Params comment formData string true "comment is tweet content"
+// @Security ApiKeyAuth
+// @Param Authorization header string true "Authorization"
+// @Param comment formData string true "comment is tweet content"
 // @Success 200 {object} domain.Tweet
 // @Router /tweets [post]
 func (h TweetHandler) Create(c echo.Context) error {
 	comment := c.FormValue("comment")
+	if comment == "" {
+		return c.JSON(http.StatusBadRequest, "comment should not be empty")
+	}
 
-	tweet, err := h.Usecase.Create(comment)
+	user := c.Get("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	email := claims["email"].(string)
 
+	tweet, err := h.Usecase.Create(email, comment)
 	if err != nil {
-		// TODO
-		panic(err)
+		log.Error(err)
+		return c.NoContent(http.StatusBadRequest)
 	}
 
 	c.Response().Header().Set("Access-Control-Allow-Origin", "*")

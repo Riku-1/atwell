@@ -23,19 +23,17 @@ func (u tweetUsecase) Get(email string, from time.Time, to time.Time) ([]domain.
 		return nil, err
 	}
 
-	twList, err := u.tweetRepository.Get(user, from, to)
-	if err != nil {
-		return nil, err
-	}
-
-	return twList, err
+	return u.tweetRepository.Get(user, from, to)
 }
 
 // Create ...
-func (u tweetUsecase) Create(comment string) (res domain.Tweet, err error) {
-	res, err = u.tweetRepository.Create(comment)
+func (u tweetUsecase) Create(email string, comment string) (domain.Tweet, error) {
+	user, err := u.userRepository.Get(email)
+	if err != nil {
+		return domain.Tweet{}, err
+	}
 
-	return
+	return u.tweetRepository.Create(user, comment)
 }
 
 // Delete ...
