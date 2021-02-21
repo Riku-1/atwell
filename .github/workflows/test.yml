@@ -46,11 +46,19 @@ jobs:
       - name: Test
         run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
         env:
+          ATWELL_DB_HOST: localhost
+          ATWELL_DB_PORT: 3306
+          ATWELL_DB_USER: root
+          ATWELL_DB_PASSWORD: example
+          ATWELL_DB_DBNAME: atwell
+
           ATWELL_TEST_DB_HOST: localhost
           ATWELL_TEST_DB_PORT: 3306
           ATWELL_TEST_DB_USER: root
           ATWELL_TEST_DB_PASSWORD: example
           ATWELL_TEST_DB_DBNAME: atwell
+
+          TZ: Asia/Tokyo
 
       - name: Send coverage
         run: bash <(curl -s https://codecov.io/bash)

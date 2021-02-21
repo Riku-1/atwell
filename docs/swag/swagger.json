@@ -1,15 +1,20 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "This is a api sample project using  golang.",
-        "title": "golang-sample-api",
+        "description": "Atwell is a Twitter for one person.",
+        "title": "atwell",
         "contact": {},
-        "version": "1.0"
+        "version": "0.1.0"
     },
     "paths": {
         "/tweets": {
             "get": {
-                "description": "get tweets from database",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get tweets from database",
                 "consumes": [
                     "application/json"
                 ],
@@ -17,6 +22,29 @@
                     "application/json"
                 ],
                 "operationId": "get-tweets",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "tweets search between 'from' value and 'to' value",
+                        "name": "from",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "tweets search between 'from' value and 'to' value",
+                        "name": "to",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -30,6 +58,11 @@
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "create new tweet.",
                 "consumes": [
                     "application/json"
@@ -38,6 +71,22 @@
                     "application/json"
                 ],
                 "operationId": "post-tweets",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "comment is tweet content",
+                        "name": "comment",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -50,6 +99,11 @@
         },
         "/tweets/{id}": {
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "delete new tweet.",
                 "consumes": [
                     "application/json"
@@ -58,6 +112,15 @@
                     "application/json"
                 ],
                 "operationId": "delete-tweets-id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK"
@@ -84,6 +147,9 @@
                 },
                 "updatedAt": {
                     "type": "string"
+                },
+                "userID": {
+                    "type": "integer"
                 }
             }
         },
@@ -98,6 +164,13 @@
                     "type": "boolean"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }

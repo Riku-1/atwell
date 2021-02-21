@@ -1,95 +1,140 @@
 package repository
 
 import (
-	"atwell/config"
-	adb "atwell/db"
 	"atwell/domain"
-	"log"
+	"atwell/infrastructure"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
-
-	"gorm.io/gorm"
 )
 
-var db *gorm.DB
-
-func setup() {
-	dc, err := config.GetTestDBConfig()
+func TestMysqlTweetRepository_Get(t *testing.T) {
+	db, err := infrastructure.GetDevGormDB()
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 
-	db, err = adb.CreateGormDB(&dc)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-func TestMain(m *testing.M) {
-	setup()
-	m.Run()
-}
-
-func TestGet(t *testing.T) {
 	tx := db.Begin()
 	defer func() {
 		tx.Rollback()
 	}()
+
+	// create user and tweet
+	user := domain.User{
+		Email: "mysql_tweet_repository_test_get@email.com",
+		Tweets: []domain.Tweet{
+			{Comment: "tweet1"},
+			{Comment: "tweet2"},
+		},
+	}
+	tx.Create(&user)
+
 	r := NewMysqlTweetRepository(tx)
-	testComment := "test_get"
-	from := time.Now()
-	tw := domain.Tweet{Comment: testComment}
-	err := tx.Create(&tw).Error
+	twList, err := r.Get(user, time.Now().AddDate(0, 0, -7), time.Now().AddDate(0, 0, 7))
 	if err != nil {
-		tx.Rollback()
 		t.Fatal(err)
 	}
-
-	twList, err := r.Get(from, from.AddDate(0, 0, 1))
-	assert.NotNil(t, twList)
+	assert.Equal(t, "tweet1", twList[0].Comment)
+	assert.Equal(t, "tweet2", twList[1].Comment)
 }
 
 func TestCreate(t *testing.T) {
+	db, err := infrastructure.GetDevGormDB()
+	if err != nil {
+		t.Fatal(err)
+	}
 	tx := db.Begin()
 	defer func() {
 		tx.Rollback()
 	}()
-	r := NewMysqlTweetRepository(tx)
 
-	testComment := "test_creeate"
-	tweet, err := r.Create(testComment)
+	// create user
+	user := domain.User{
+		Email: "mysql_tweet_repository_test_create@email.com",
+	}
+	tx.Create(&user)
+
+	r := NewMysqlTweetRepository(tx)
+	tweet, err := r.Create(user, "tweet_repository_create_test")
 
 	if err != nil {
 		tx.Rollback()
 		t.Fatal(err)
 	}
 
-	assert.Equal(t, tweet.Comment, testComment)
+	assert.Equal(t, tweet.Comment, "tweet_repository_create_test")
 }
 
-func TestDelete(t *testing.T) {
+func TestMysqlTweetRepository_Delete(t *testing.T) {
+	db, err := infrastructure.GetDevGormDB()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	tx := db.Begin()
 	defer func() {
 		tx.Rollback()
 	}()
+
+	// create user and tweet
+	user := domain.User{
+		Email:  "mysql_tweet_repository_test_delete@email.com",
+		Tweets: []domain.Tweet{},
+	}
+	tx.Create(&user)
+
+	tweet := domain.Tweet{
+		Comment: "tweet_repository_test_delete",
+		UserID:  user.ID,
+	}
+	tx.Create(&tweet)
+
+	// call function
 	r := NewMysqlTweetRepository(tx)
-	tweet := domain.Tweet{Comment: "test_delete"}
-	err := tx.Create(&tweet).Error
+	err = r.Delete(user, tweet.ID)
 	if err != nil {
 		tx.Rollback()
 		t.Fatal(err)
 	}
 
-	err = r.Delete(int(tweet.ID))
+	var deletedTweet domain.Tweet
+	tx.Find(&deletedTweet)
+	assert.NotNil(t, deletedTweet.DeletedAt)
+}
+
+func TestMysqlTweetRepository_Delete_ByNotOwner(t *testing.T) {
+	db, err := infrastructure.GetDevGormDB()
 	if err != nil {
-		tx.Rollback()
 		t.Fatal(err)
 	}
 
-	var tweet2 domain.Tweet
-	tx.Find(&tweet2, tweet.ID)
+	tx := db.Begin()
+	defer func() {
+		tx.Rollback()
+	}()
 
-	assert.Equal(t, 0, int(tweet2.ID))
+	// create user1 and tweet
+	user1 := domain.User{
+		Email:  "mysql_tweet_repository_test_delete@email.com",
+		Tweets: []domain.Tweet{},
+	}
+	tx.Create(&user1)
+
+	tweet := domain.Tweet{
+		Comment: "tweet_repository_test_delete",
+		UserID:  user1.ID,
+	}
+	tx.Create(&tweet)
+
+	user2 := domain.User{
+		Email:  "another_user@email.com",
+		Tweets: []domain.Tweet{},
+	}
+
+	// call function by not owner
+	r := NewMysqlTweetRepository(tx)
+	err = r.Delete(user2, tweet.ID)
+
+	assert.IsType(t, infrastructure.NoAuthorizationError{}, err)
 }

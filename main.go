@@ -1,8 +1,7 @@
 package main
 
 import (
-	"atwell/config"
-	adb "atwell/db"
+	"atwell/infrastructure"
 	"atwell/repository"
 	"atwell/usecase"
 	"atwell/web/handler"
@@ -13,22 +12,25 @@ import (
 )
 
 func handleRequests(db *gorm.DB, e *echo.Echo) {
-	tu := usecase.NewTweetUsecase(repository.NewMysqlTweetRepository(db))
+	tu := usecase.NewTweetUsecase(repository.NewMysqlTweetRepository(db), repository.NewMysqlUserRepository(db))
 	th := handler.TweetHandler{Usecase: tu}
 	handler.HandleTweetRequest(th, e)
+
+	uu := usecase.NewAuthUsecase(repository.NewMysqlUserRepository(db))
+	uh := handler.AuthHandler{Usecase: uu}
+	handler.HandleAuthRequest(uh, e)
+
 	log.Fatal(e.Start(":10000"))
 }
 
 // @title atwell
 // @version 0.1.0
 // @description Atwell is a Twitter for one person.
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
 func main() {
-	dc, err := config.GetPrdDBConfig()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	db, err := adb.CreateGormDB(&dc)
+	db, err := infrastructure.GetPrdGormDB()
 	if err != nil {
 		log.Fatal(err)
 	}

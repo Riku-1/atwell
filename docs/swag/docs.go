@@ -26,7 +26,12 @@ var doc = `{
     "paths": {
         "/tweets": {
             "get": {
-                "description": "get tweets from database",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get tweets from database",
                 "consumes": [
                     "application/json"
                 ],
@@ -34,6 +39,29 @@ var doc = `{
                     "application/json"
                 ],
                 "operationId": "get-tweets",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "tweets search between 'from' value and 'to' value",
+                        "name": "from",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "tweets search between 'from' value and 'to' value",
+                        "name": "to",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -47,6 +75,11 @@ var doc = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "create new tweet.",
                 "consumes": [
                     "application/json"
@@ -55,6 +88,22 @@ var doc = `{
                     "application/json"
                 ],
                 "operationId": "post-tweets",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "comment is tweet content",
+                        "name": "comment",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -67,6 +116,11 @@ var doc = `{
         },
         "/tweets/{id}": {
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "delete new tweet.",
                 "consumes": [
                     "application/json"
@@ -75,6 +129,15 @@ var doc = `{
                     "application/json"
                 ],
                 "operationId": "delete-tweets-id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK"
@@ -101,6 +164,9 @@ var doc = `{
                 },
                 "updatedAt": {
                     "type": "string"
+                },
+                "userID": {
+                    "type": "integer"
                 }
             }
         },
@@ -116,6 +182,13 @@ var doc = `{
                 }
             }
         }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
     }
 }`
 
@@ -130,12 +203,12 @@ type swaggerInfo struct {
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = swaggerInfo{
-	Version:     "1.0",
+	Version:     "0.1.0",
 	Host:        "",
 	BasePath:    "",
 	Schemes:     []string{},
-	Title:       "golang-sample-api",
-	Description: "This is a api sample project using  golang.",
+	Title:       "atwell",
+	Description: "Atwell is a Twitter for one person.",
 }
 
 type s struct{}

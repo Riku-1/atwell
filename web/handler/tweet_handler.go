@@ -2,9 +2,16 @@ package handler
 
 import (
 	"atwell/domain"
+	"atwell/infrastructure"
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/labstack/gommon/log"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/labstack/echo/v4/middleware"
 
 	"github.com/labstack/echo/v4"
 )
@@ -19,22 +26,29 @@ type TweetHandler struct {
 // @ID get-tweets
 // @Accept  json
 // @Produce  json
-// @Params from query string true "tweets search between 'from' value and 'to' value"
-// @Params to query string true "tweets search between 'from' value and 'to' value"
+// @Security ApiKeyAuth
+// @Param Authorization header string true "Authorization"
+// @Param from query string true "tweets search between 'from' value and 'to' value"
+// @Param to query string true "tweets search between 'from' value and 'to' value"
 // @Success 200 {object} []domain.Tweet
 // @Router /tweets [get]
 func (h TweetHandler) Get(c echo.Context) error {
-	// TODO: when from and to is empty
-	from := c.QueryParam("from")
-	to := c.QueryParam("to")
-	_from, _ := time.ParseInLocation("2006-01-02", from, time.Local)
-	_to, _ := time.ParseInLocation("2006-01-02", to, time.Local)
-	// set by twelve o'clock midnight of the next day.
-	tweets, err := h.Usecase.Get(_from, _to.AddDate(0, 0, 1))
+	fromString := c.QueryParam("from")
+	toString := c.QueryParam("to")
+	from, _ := time.ParseInLocation("2006-01-02", fromString, time.UTC)
+	to, _ := time.ParseInLocation("2006-01-02", toString, time.UTC)
 
+	// set by twelve o'clock midnight of the next day
+	to.AddDate(0, 0, 1)
+
+	user := c.Get("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	email := claims["email"].(string)
+
+	tweets, err := h.Usecase.Get(email, from, to)
 	if err != nil {
-		// TODO
-		panic(err)
+		log.Error(err)
+		return c.NoContent(http.StatusBadRequest)
 	}
 
 	c.Response().Header().Set("Access-Control-Allow-Origin", "*")
@@ -46,17 +60,25 @@ func (h TweetHandler) Get(c echo.Context) error {
 // @ID post-tweets
 // @Accept  json
 // @Produce  json
-// @Params comment formData string true "comment is tweet content"
+// @Security ApiKeyAuth
+// @Param Authorization header string true "Authorization"
+// @Param comment formData string true "comment is tweet content"
 // @Success 200 {object} domain.Tweet
 // @Router /tweets [post]
 func (h TweetHandler) Create(c echo.Context) error {
 	comment := c.FormValue("comment")
+	if comment == "" {
+		return c.JSON(http.StatusBadRequest, "comment should not be empty")
+	}
 
-	tweet, err := h.Usecase.Create(comment)
+	user := c.Get("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	email := claims["email"].(string)
 
+	tweet, err := h.Usecase.Create(email, comment)
 	if err != nil {
-		// TODO
-		panic(err)
+		log.Error(err)
+		return c.NoContent(http.StatusBadRequest)
 	}
 
 	c.Response().Header().Set("Access-Control-Allow-Origin", "*")
@@ -68,13 +90,25 @@ func (h TweetHandler) Create(c echo.Context) error {
 // @ID delete-tweets-id
 // @Accept  json
 // @Produce  json
+// @Security ApiKeyAuth
+// @Param Authorization header string true "Authorization"
 // @Success 200 "OK"
 // @Router /tweets/{id} [delete]
 func (h TweetHandler) Delete(c echo.Context) error {
 	id, _ := strconv.Atoi(c.Param("id"))
-	err := h.Usecase.Delete(id)
+
+	user := c.Get("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	email := claims["email"].(string)
+
+	err := h.Usecase.Delete(email, uint(id))
+	if errors.Is(infrastructure.NoAuthorizationError{}, err) {
+		return c.NoContent(http.StatusForbidden)
+	}
+
 	if err != nil {
-		// TODO: error response
+		log.Error(err)
+		return c.NoContent(http.StatusBadRequest)
 	}
 
 	c.Response().Header().Set("Access-Control-Allow-Origin", "*")
@@ -84,6 +118,7 @@ func (h TweetHandler) Delete(c echo.Context) error {
 // HandleTweetRequest set up routes for requests.
 func HandleTweetRequest(h TweetHandler, e *echo.Echo) {
 	g := e.Group("/tweets")
+	g.Use(middleware.JWT([]byte("secret")))
 
 	g.GET("", h.Get)
 	g.POST("", h.Create)

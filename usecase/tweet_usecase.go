@@ -7,29 +7,41 @@ import (
 
 // tweetUsecase ...
 type tweetUsecase struct {
-	repository domain.TweetRepository
+	tweetRepository domain.TweetRepository
+	userRepository  domain.UserRepository
 }
 
 // NewTweetUsecase provides a tweetUsecase struct
-func NewTweetUsecase(r domain.TweetRepository) domain.TweetUsecase {
-	return tweetUsecase{r}
+func NewTweetUsecase(r domain.TweetRepository, ur domain.UserRepository) domain.TweetUsecase {
+	return tweetUsecase{r, ur}
 }
 
-// Get ...
-func (u tweetUsecase) Get(from time.Time, to time.Time) (res []domain.Tweet, err error) {
-	res, err = u.repository.Get(from, to)
+// Get returns tweet list.
+func (u tweetUsecase) Get(email string, from time.Time, to time.Time) ([]domain.Tweet, error) {
+	user, err := u.userRepository.Get(email)
+	if err != nil {
+		return nil, err
+	}
 
-	return
+	return u.tweetRepository.Get(user, from, to)
 }
 
 // Create ...
-func (u tweetUsecase) Create(comment string) (res domain.Tweet, err error) {
-	res, err = u.repository.Create(comment)
+func (u tweetUsecase) Create(email string, comment string) (domain.Tweet, error) {
+	user, err := u.userRepository.Get(email)
+	if err != nil {
+		return domain.Tweet{}, err
+	}
 
-	return
+	return u.tweetRepository.Create(user, comment)
 }
 
 // Delete ...
-func (u tweetUsecase) Delete(id int) error {
-	return u.repository.Delete(id)
+func (u tweetUsecase) Delete(email string, id uint) error {
+	user, err := u.userRepository.Get(email)
+	if err != nil {
+		return err
+	}
+
+	return u.tweetRepository.Delete(user, id)
 }
