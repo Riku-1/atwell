@@ -49,13 +49,13 @@ func (_m *TweetUsecase) Delete(id int) error {
 	return r0
 }
 
-// Get provides a mock function with given fields: from, to
-func (_m *TweetUsecase) Get(from time.Time, to time.Time) ([]domain.Tweet, error) {
-	ret := _m.Called(from, to)
+// Get provides a mock function with given fields: email, from, to
+func (_m *TweetUsecase) Get(email string, from time.Time, to time.Time) ([]domain.Tweet, error) {
+	ret := _m.Called(email, from, to)
 
 	var r0 []domain.Tweet
-	if rf, ok := ret.Get(0).(func(time.Time, time.Time) []domain.Tweet); ok {
-		r0 = rf(from, to)
+	if rf, ok := ret.Get(0).(func(string, time.Time, time.Time) []domain.Tweet); ok {
+		r0 = rf(email, from, to)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]domain.Tweet)
@@ -63,8 +63,8 @@ func (_m *TweetUsecase) Get(from time.Time, to time.Time) ([]domain.Tweet, error
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(time.Time, time.Time) error); ok {
-		r1 = rf(from, to)
+	if rf, ok := ret.Get(1).(func(string, time.Time, time.Time) error); ok {
+		r1 = rf(email, from, to)
 	} else {
 		r1 = ret.Error(1)
 	}

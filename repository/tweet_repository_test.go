@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGet(t *testing.T) {
+func TestMysqlTweetRepository_Get(t *testing.T) {
 	db, err := infrastructure.GetDevGormDB()
 	if err != nil {
 		t.Fatal(err)
@@ -19,18 +19,24 @@ func TestGet(t *testing.T) {
 	defer func() {
 		tx.Rollback()
 	}()
+
+	// create user and tweet
+	user := domain.User{
+		Email: "mysql_tweet_repository_test_get@email.com",
+		Tweets: []domain.Tweet{
+			{Comment: "tweet1"},
+			{Comment: "tweet2"},
+		},
+	}
+	tx.Create(&user)
+
 	r := NewMysqlTweetRepository(tx)
-	testComment := "test_get"
-	from := time.Now()
-	tw := domain.Tweet{Comment: testComment}
-	err = tx.Create(&tw).Error
+	twList, err := r.Get(user, time.Now().AddDate(0, 0, -1), time.Now())
 	if err != nil {
-		tx.Rollback()
 		t.Fatal(err)
 	}
-
-	twList, err := r.Get(from, from.AddDate(0, 0, 1))
-	assert.NotNil(t, twList)
+	assert.Equal(t, "tweet1", twList[0].Comment)
+	assert.Equal(t, "tweet2", twList[1].Comment)
 }
 
 func TestCreate(t *testing.T) {

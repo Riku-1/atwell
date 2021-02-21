@@ -31,6 +31,7 @@ func (r mysqlUserRepository) Create(email string) (domain.User, error) {
 	return user, err
 }
 
+// Get finds a user by email.
 func (r mysqlUserRepository) Get(email string) (domain.User, error) {
 	var user domain.User
 	err := r.db.Where("email = ?", email).First(&user).Error

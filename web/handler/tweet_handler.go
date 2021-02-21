@@ -6,6 +6,11 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/labstack/gommon/log"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/labstack/echo/v4/middleware"
+
 	"github.com/labstack/echo/v4"
 )
 
@@ -19,22 +24,29 @@ type TweetHandler struct {
 // @ID get-tweets
 // @Accept  json
 // @Produce  json
-// @Params from query string true "tweets search between 'from' value and 'to' value"
-// @Params to query string true "tweets search between 'from' value and 'to' value"
+// @Security ApiKeyAuth
+// @param Authorization header string true "Authorization"
+// @Param from query string true "tweets search between 'from' value and 'to' value"
+// @Param to query string true "tweets search between 'from' value and 'to' value"
 // @Success 200 {object} []domain.Tweet
 // @Router /tweets [get]
 func (h TweetHandler) Get(c echo.Context) error {
-	// TODO: when from and to is empty
-	from := c.QueryParam("from")
-	to := c.QueryParam("to")
-	_from, _ := time.ParseInLocation("2006-01-02", from, time.Local)
-	_to, _ := time.ParseInLocation("2006-01-02", to, time.Local)
-	// set by twelve o'clock midnight of the next day.
-	tweets, err := h.Usecase.Get(_from, _to.AddDate(0, 0, 1))
+	fromString := c.QueryParam("from")
+	toString := c.QueryParam("to")
+	from, _ := time.ParseInLocation("2006-01-02", fromString, time.Local)
+	to, _ := time.ParseInLocation("2006-01-02", toString, time.Local)
 
+	// set by twelve o'clock midnight of the next day
+	to.AddDate(0, 0, 1)
+
+	user := c.Get("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	email := claims["email"].(string)
+
+	tweets, err := h.Usecase.Get(email, from, to)
 	if err != nil {
-		// TODO
-		panic(err)
+		log.Error(err)
+		return c.NoContent(http.StatusBadRequest)
 	}
 
 	c.Response().Header().Set("Access-Control-Allow-Origin", "*")
@@ -84,6 +96,7 @@ func (h TweetHandler) Delete(c echo.Context) error {
 // HandleTweetRequest set up routes for requests.
 func HandleTweetRequest(h TweetHandler, e *echo.Echo) {
 	g := e.Group("/tweets")
+	g.Use(middleware.JWT([]byte("secret")))
 
 	g.GET("", h.Get)
 	g.POST("", h.Create)

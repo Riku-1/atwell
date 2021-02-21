@@ -13,13 +13,13 @@ type Tweet struct {
 }
 
 type TweetUsecase interface {
-	Get(from time.Time, to time.Time) ([]Tweet, error)
+	Get(email string, from time.Time, to time.Time) ([]Tweet, error)
 	Create(comment string) (Tweet, error)
 	Delete(id int) error
 }
 
 type TweetRepository interface {
-	Get(from time.Time, to time.Time) ([]Tweet, error)
+	Get(user User, from time.Time, to time.Time) ([]Tweet, error)
 	Create(comment string) (Tweet, error)
 	Delete(id int) error
 }

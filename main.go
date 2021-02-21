@@ -12,7 +12,7 @@ import (
 )
 
 func handleRequests(db *gorm.DB, e *echo.Echo) {
-	tu := usecase.NewTweetUsecase(repository.NewMysqlTweetRepository(db))
+	tu := usecase.NewTweetUsecase(repository.NewMysqlTweetRepository(db), repository.NewMysqlUserRepository(db))
 	th := handler.TweetHandler{Usecase: tu}
 	handler.HandleTweetRequest(th, e)
 
@@ -26,6 +26,9 @@ func handleRequests(db *gorm.DB, e *echo.Echo) {
 // @title atwell
 // @version 0.1.0
 // @description Atwell is a Twitter for one person.
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
 func main() {
 	db, err := infrastructure.GetPrdGormDB()
 	if err != nil {

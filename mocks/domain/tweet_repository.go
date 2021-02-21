@@ -49,13 +49,13 @@ func (_m *TweetRepository) Delete(id int) error {
 	return r0
 }
 
-// Get provides a mock function with given fields: from, to
-func (_m *TweetRepository) Get(from time.Time, to time.Time) ([]domain.Tweet, error) {
-	ret := _m.Called(from, to)
+// Get provides a mock function with given fields: user, from, to
+func (_m *TweetRepository) Get(user domain.User, from time.Time, to time.Time) ([]domain.Tweet, error) {
+	ret := _m.Called(user, from, to)
 
 	var r0 []domain.Tweet
-	if rf, ok := ret.Get(0).(func(time.Time, time.Time) []domain.Tweet); ok {
-		r0 = rf(from, to)
+	if rf, ok := ret.Get(0).(func(domain.User, time.Time, time.Time) []domain.Tweet); ok {
+		r0 = rf(user, from, to)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]domain.Tweet)
@@ -63,8 +63,8 @@ func (_m *TweetRepository) Get(from time.Time, to time.Time) ([]domain.Tweet, er
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(time.Time, time.Time) error); ok {
-		r1 = rf(from, to)
+	if rf, ok := ret.Get(1).(func(domain.User, time.Time, time.Time) error); ok {
+		r1 = rf(user, from, to)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -18,10 +18,14 @@ func NewMysqlTweetRepository(db *gorm.DB) domain.TweetRepository {
 }
 
 // Get returns tweets.
-func (r mysqlTweetRepository) Get(from time.Time, to time.Time) (res []domain.Tweet, err error) {
-	err = r.db.Where("created_at BETWEEN ? AND ?", from, to).Order("created_at desc").Find(&res).Error
+func (r mysqlTweetRepository) Get(user domain.User, from time.Time, to time.Time) ([]domain.Tweet, error) {
+	var tweetList []domain.Tweet
+	err := r.db.Where("user_id = ?", user.ID).Where("created_at BETWEEN ? AND ?", from, to).Order("created_at desc").Find(&tweetList).Error
+	if err != nil {
+		return nil, err
+	}
 
-	return
+	return tweetList, nil
 }
 
 // Create creates a new tweet.
