@@ -23,3 +23,11 @@ func TestNotFoundError_Error(t *testing.T) {
 	_, ok := interface{}(err).(error)
 	assert.True(t, ok)
 }
+
+func TestNoAuthorizationError_Error(t *testing.T) {
+	err := NoAuthorizationError{}
+	assert.Equal(t, NoAuthorizationErrorMessage, err.Error())
+
+	_, ok := interface{}(err).(error)
+	assert.True(t, ok)
+}

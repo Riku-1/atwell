@@ -37,6 +37,11 @@ func (u tweetUsecase) Create(email string, comment string) (domain.Tweet, error)
 }
 
 // Delete ...
-func (u tweetUsecase) Delete(id int) error {
-	return u.tweetRepository.Delete(id)
+func (u tweetUsecase) Delete(email string, id uint) error {
+	user, err := u.userRepository.Get(email)
+	if err != nil {
+		return err
+	}
+
+	return u.tweetRepository.Delete(user, id)
 }

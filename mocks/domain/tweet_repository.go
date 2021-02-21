@@ -35,13 +35,13 @@ func (_m *TweetRepository) Create(user domain.User, comment string) (domain.Twee
 	return r0, r1
 }
 
-// Delete provides a mock function with given fields: id
-func (_m *TweetRepository) Delete(id int) error {
-	ret := _m.Called(id)
+// Delete provides a mock function with given fields: user, id
+func (_m *TweetRepository) Delete(user domain.User, id uint) error {
+	ret := _m.Called(user, id)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(int) error); ok {
-		r0 = rf(id)
+	if rf, ok := ret.Get(0).(func(domain.User, uint) error); ok {
+		r0 = rf(user, id)
 	} else {
 		r0 = ret.Error(0)
 	}

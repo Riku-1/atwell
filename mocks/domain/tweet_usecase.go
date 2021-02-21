@@ -35,13 +35,13 @@ func (_m *TweetUsecase) Create(email string, comment string) (domain.Tweet, erro
 	return r0, r1
 }
 
-// Delete provides a mock function with given fields: id
-func (_m *TweetUsecase) Delete(id int) error {
-	ret := _m.Called(id)
+// Delete provides a mock function with given fields: email, id
+func (_m *TweetUsecase) Delete(email string, id uint) error {
+	ret := _m.Called(email, id)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(int) error); ok {
-		r0 = rf(id)
+	if rf, ok := ret.Get(0).(func(string, uint) error); ok {
+		r0 = rf(email, id)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -134,29 +134,48 @@ func TestTweetUsecase_Create_WhenUserRepositoryError(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-//func TestCreate(t *testing.T) {
-//	repo := new(mocks.TweetRepository)
-//	comment := "test_create"
-//	mockTweet := domain.Tweet{Comment: comment}
-//
-//	repo.On("Create", comment).Return(mockTweet, nil).Once()
-//	u := NewTweetUsecase(repo)
-//	tweet, err := u.Create(comment)
-//	if err != nil {
-//		t.Fatal(err)
-//	}
-//
-//	assert.Equal(t, mockTweet.Comment, tweet.Comment)
-//}
-//
-//func TestDelete(t *testing.T) {
-//	repo := new(mocks.TweetRepository)
-//	targetID := 111
-//
-//	repo.On("Delete", targetID).Return(nil).Once()
-//	u := NewTweetUsecase(repo)
-//	err := u.Delete(targetID)
-//	if err != nil {
-//		t.Fatal(err)
-//	}
-//}
+func TestTweetUsecase_Delete(t *testing.T) {
+	// mock
+	userRepository := new(mocks.UserRepository)
+	email := "test_test@email.com"
+	mockUser := domain.User{Email: email}
+	userRepository.On("Get", email).Return(
+		mockUser,
+		nil,
+	)
+
+	tweetRepository := new(mocks.TweetRepository)
+	deleteID := uint(111)
+	tweetRepository.On("Delete", mockUser, deleteID).Return(nil).Once()
+
+	// call function
+	u := NewTweetUsecase(
+		tweetRepository,
+		userRepository,
+	)
+	err := u.Delete(email, deleteID)
+	assert.Nil(t, err)
+}
+
+func TestTweetUsecase_Delete_WhenUserRepositoryError(t *testing.T) {
+	// mock
+	userRepository := new(mocks.UserRepository)
+	email := "test_test@email.com"
+	mockUser := domain.User{Email: email}
+	userRepository.On("Get", email).Return(
+		mockUser,
+		errors.New("some error"), // error occurred
+	)
+
+	tweetRepository := new(mocks.TweetRepository)
+	deleteID := uint(111)
+	tweetRepository.On("Delete", mockUser, deleteID).Return(nil).Once()
+
+	// call function
+	u := NewTweetUsecase(
+		tweetRepository,
+		userRepository,
+	)
+	err := u.Delete(email, deleteID)
+	assert.NotNil(t, err)
+}

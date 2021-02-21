@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strconv"
 	"testing"
 
 	"github.com/labstack/echo/v4/middleware"
@@ -17,14 +18,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 )
-
-func setup() {
-}
-
-func TestMain(m *testing.M) {
-	setup()
-	m.Run()
-}
 
 func TestTweetHandler_Get(t *testing.T) {
 	db, err := infrastructure.GetDevGormDB()
@@ -310,35 +303,184 @@ func TestTweetHandler_Create_WithNoLogin(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-//
-//func TestDelete(t *testing.T) {
-//	tx := db.Begin()
-//
-//	tw := domain.Tweet{Comment: "test_delete"}
-//	err := db.Create(&tw).Error
-//
-//	if err != nil {
-//		tx.Rollback()
-//		t.Fatal(err)
-//	}
-//	tx.Commit()
-//
-//	e := echo.New()
-//	req := httptest.NewRequest(http.MethodDelete, "/", nil)
-//	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-//	rec := httptest.NewRecorder()
-//	c := e.NewContext(req, rec)
-//	c.SetPath("/tweets/:id")
-//	c.SetParamNames("id")
-//	c.SetParamValues(strconv.Itoa(int(tw.ID)))
-//	err = handler.Delete(c)
-//	if err != nil {
-//		t.Fatal(err)
-//	}
-//
-//	// assertion
-//	var _tw domain.Tweet
-//	db.Find(&_tw, tw.ID)
-//	assert.Equal(t, http.StatusOK, rec.Code)
-//	assert.Equal(t, "", _tw.Comment)
-//}
+func TestTweetHandler_Delete(t *testing.T) {
+	db, err := infrastructure.GetDevGormDB()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tx := db.Begin()
+	defer func() {
+		tx.Rollback()
+	}()
+
+	u := usecase.NewTweetUsecase(
+		repository.NewMysqlTweetRepository(tx),
+		repository.NewMysqlUserRepository(tx),
+	)
+	handler := TweetHandler{Usecase: u}
+
+	// create user and tweet
+	email := "tweet_handler_get_test@email.com"
+	user := domain.User{
+		Email:  email,
+		Tweets: []domain.Tweet{},
+	}
+	tx.Create(&user)
+
+	tweet := domain.Tweet{Comment: "test_delete", UserID: user.ID}
+	tx.Create(&tweet)
+
+	// get token
+	uu := usecase.NewAuthUsecase(repository.NewMysqlUserRepository(tx))
+	token, err := uu.Login(email)
+	if err != nil {
+		tx.Rollback()
+		t.Fatal(err)
+	}
+
+	// set request
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodDelete, "/", nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	req.Header.Set(
+		echo.HeaderAuthorization,
+		"Bearer "+token,
+	)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/tweets/:id")
+	c.SetParamNames("id")
+	c.SetParamValues(strconv.Itoa(int(tweet.ID)))
+
+	// do request
+	err = middleware.JWTWithConfig(middleware.JWTConfig{
+		SigningKey: []byte("secret"),
+	})(handler.Delete)(c)
+	if err != nil {
+		tx.Rollback()
+		t.Fatal(err)
+	}
+
+	// assertion
+	assert.Equal(t, http.StatusOK, rec.Code)
+
+	var deletedTweet domain.Tweet
+	tx.Find(&deletedTweet, tweet.ID)
+	assert.NotNil(t, deletedTweet.DeletedAt)
+}
+
+func TestTweetHandler_Delete_WithNoLogin(t *testing.T) {
+	db, err := infrastructure.GetDevGormDB()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tx := db.Begin()
+	defer func() {
+		tx.Rollback()
+	}()
+
+	u := usecase.NewTweetUsecase(
+		repository.NewMysqlTweetRepository(tx),
+		repository.NewMysqlUserRepository(tx),
+	)
+	handler := TweetHandler{Usecase: u}
+
+	// create user and tweet
+	email := "tweet_handler_get_test@email.com"
+	user := domain.User{
+		Email:  email,
+		Tweets: []domain.Tweet{},
+	}
+	tx.Create(&user)
+
+	tweet := domain.Tweet{Comment: "test_delete", UserID: user.ID}
+	tx.Create(&tweet)
+
+	// set request with no login
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodDelete, "/", nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/tweets/:id")
+	c.SetParamNames("id")
+	c.SetParamValues(strconv.Itoa(int(tweet.ID)))
+
+	// do request
+	err = middleware.JWTWithConfig(middleware.JWTConfig{
+		SigningKey: []byte("secret"),
+	})(handler.Delete)(c)
+
+	// assertion
+	assert.NotNil(t, err)
+}
+
+func TestTweetHandler_Delete_ByNotOwner(t *testing.T) {
+	db, err := infrastructure.GetDevGormDB()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tx := db.Begin()
+	defer func() {
+		tx.Rollback()
+	}()
+
+	u := usecase.NewTweetUsecase(
+		repository.NewMysqlTweetRepository(tx),
+		repository.NewMysqlUserRepository(tx),
+	)
+	handler := TweetHandler{Usecase: u}
+
+	// create user1 and tweet
+	user1 := domain.User{
+		Email:  "tweet_handler_get_test@email.com",
+		Tweets: []domain.Tweet{},
+	}
+	tx.Create(&user1)
+
+	tweet := domain.Tweet{Comment: "test_delete", UserID: user1.ID}
+	tx.Create(&tweet)
+
+	noOwnerEmail := "no_owner@email.com"
+	user2 := domain.User{
+		Email: noOwnerEmail,
+	}
+	tx.Create(&user2)
+
+	// get token by user2
+	uu := usecase.NewAuthUsecase(repository.NewMysqlUserRepository(tx))
+	token, err := uu.Login(noOwnerEmail)
+	if err != nil {
+		tx.Rollback()
+		t.Fatal(err)
+	}
+
+	// set request
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodDelete, "/", nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	req.Header.Set(
+		echo.HeaderAuthorization,
+		"Bearer "+token,
+	)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/tweets/:id")
+	c.SetParamNames("id")
+	c.SetParamValues(strconv.Itoa(int(tweet.ID)))
+
+	// do request for user1's tweet by user2
+	err = middleware.JWTWithConfig(middleware.JWTConfig{
+		SigningKey: []byte("secret"),
+	})(handler.Delete)(c)
+	if err != nil {
+		tx.Rollback()
+		t.Fatal(err)
+	}
+
+	// assertion
+	assert.Equal(t, http.StatusForbidden, rec.Code)
+}

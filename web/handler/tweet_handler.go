@@ -2,6 +2,8 @@ package handler
 
 import (
 	"atwell/domain"
+	"atwell/infrastructure"
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
@@ -88,13 +90,25 @@ func (h TweetHandler) Create(c echo.Context) error {
 // @ID delete-tweets-id
 // @Accept  json
 // @Produce  json
+// @Security ApiKeyAuth
+// @Param Authorization header string true "Authorization"
 // @Success 200 "OK"
 // @Router /tweets/{id} [delete]
 func (h TweetHandler) Delete(c echo.Context) error {
 	id, _ := strconv.Atoi(c.Param("id"))
-	err := h.Usecase.Delete(id)
+
+	user := c.Get("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	email := claims["email"].(string)
+
+	err := h.Usecase.Delete(email, uint(id))
+	if errors.Is(infrastructure.NoAuthorizationError{}, err) {
+		return c.NoContent(http.StatusForbidden)
+	}
+
 	if err != nil {
-		// TODO: error response
+		log.Error(err)
+		return c.NoContent(http.StatusBadRequest)
 	}
 
 	c.Response().Header().Set("Access-Control-Allow-Origin", "*")

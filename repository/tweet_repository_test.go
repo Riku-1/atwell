@@ -66,7 +66,7 @@ func TestCreate(t *testing.T) {
 	assert.Equal(t, tweet.Comment, "tweet_repository_create_test")
 }
 
-func TestDelete(t *testing.T) {
+func TestMysqlTweetRepository_Delete(t *testing.T) {
 	db, err := infrastructure.GetDevGormDB()
 	if err != nil {
 		t.Fatal(err)
@@ -76,22 +76,65 @@ func TestDelete(t *testing.T) {
 	defer func() {
 		tx.Rollback()
 	}()
+
+	// create user and tweet
+	user := domain.User{
+		Email:  "mysql_tweet_repository_test_delete@email.com",
+		Tweets: []domain.Tweet{},
+	}
+	tx.Create(&user)
+
+	tweet := domain.Tweet{
+		Comment: "tweet_repository_test_delete",
+		UserID:  user.ID,
+	}
+	tx.Create(&tweet)
+
+	// call function
 	r := NewMysqlTweetRepository(tx)
-	tweet := domain.Tweet{Comment: "test_delete"}
-	err = tx.Create(&tweet).Error
+	err = r.Delete(user, tweet.ID)
 	if err != nil {
 		tx.Rollback()
 		t.Fatal(err)
 	}
 
-	err = r.Delete(int(tweet.ID))
+	var deletedTweet domain.Tweet
+	tx.Find(&deletedTweet)
+	assert.NotNil(t, deletedTweet.DeletedAt)
+}
+
+func TestMysqlTweetRepository_Delete_ByNotOwner(t *testing.T) {
+	db, err := infrastructure.GetDevGormDB()
 	if err != nil {
-		tx.Rollback()
 		t.Fatal(err)
 	}
 
-	var tweet2 domain.Tweet
-	tx.Find(&tweet2, tweet.ID)
+	tx := db.Begin()
+	defer func() {
+		tx.Rollback()
+	}()
 
-	assert.Equal(t, 0, int(tweet2.ID))
+	// create user1 and tweet
+	user1 := domain.User{
+		Email:  "mysql_tweet_repository_test_delete@email.com",
+		Tweets: []domain.Tweet{},
+	}
+	tx.Create(&user1)
+
+	tweet := domain.Tweet{
+		Comment: "tweet_repository_test_delete",
+		UserID:  user1.ID,
+	}
+	tx.Create(&tweet)
+
+	user2 := domain.User{
+		Email:  "another_user@email.com",
+		Tweets: []domain.Tweet{},
+	}
+
+	// call function by not owner
+	r := NewMysqlTweetRepository(tx)
+	err = r.Delete(user2, tweet.ID)
+
+	assert.IsType(t, infrastructure.NoAuthorizationError{}, err)
 }

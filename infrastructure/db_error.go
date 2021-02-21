@@ -15,3 +15,11 @@ const NotFoundErrorMessage = "record not found"
 func (e NotFoundError) Error() string {
 	return NotFoundErrorMessage
 }
+
+type NoAuthorizationError struct{}
+
+const NoAuthorizationErrorMessage = "operation is not authorized by this user"
+
+func (e NoAuthorizationError) Error() string {
+	return NoAuthorizationErrorMessage
+}
