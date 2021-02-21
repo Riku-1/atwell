@@ -11,6 +11,8 @@ definitions:
         type: integer
       updatedAt:
         type: string
+      userID:
+        type: integer
     type: object
   gorm.DeletedAt:
     properties:
@@ -22,16 +24,32 @@ definitions:
     type: object
 info:
   contact: {}
-  description: This is a api sample project using  golang.
-  title: golang-sample-api
-  version: "1.0"
+  description: Atwell is a Twitter for one person.
+  title: atwell
+  version: 0.1.0
 paths:
   /tweets:
     get:
       consumes:
       - application/json
-      description: get tweets from database
+      description: Get tweets from database
       operationId: get-tweets
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: tweets search between 'from' value and 'to' value
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: tweets search between 'from' value and 'to' value
+        in: query
+        name: to
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -41,11 +59,24 @@ paths:
             items:
               $ref: '#/definitions/domain.Tweet'
             type: array
+      security:
+      - ApiKeyAuth: []
     post:
       consumes:
       - application/json
       description: create new tweet.
       operationId: post-tweets
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: comment is tweet content
+        in: formData
+        name: comment
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -53,15 +84,30 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/domain.Tweet'
+      security:
+      - ApiKeyAuth: []
   /tweets/{id}:
     delete:
       consumes:
       - application/json
       description: delete new tweet.
       operationId: delete-tweets-id
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
+      security:
+      - ApiKeyAuth: []
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
