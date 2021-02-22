@@ -44,7 +44,7 @@ jobs:
           goose -dir ./migration mysql "root:example@/atwell?parseTime=true" up
 
       - name: Test
-        run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+        run: go test -race -coverprofile=coverage.txt -covermode=atomic $(go list ./... | grep -v /mocks/ | grep -v /docs)
         env:
           ATWELL_DB_HOST: localhost
           ATWELL_DB_PORT: 3306
