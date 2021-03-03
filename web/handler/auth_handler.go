@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"atwell/authentication/usecase"
 	"atwell/domain"
 	"atwell/infrastructure"
 	"errors"
@@ -13,23 +14,25 @@ import (
 
 // AuthHandler is struct for handling http request about auth.
 type AuthHandler struct {
-	Usecase domain.UserUsecase
+	Usecase domain.AuthenticationUsecase
 }
 
 func HandleAuthRequest(h AuthHandler, e *echo.Echo) {
-	e.POST("/sign-in", h.SignIn)
-	e.POST("/login", h.Login)
+	g := e.Group("/yahoo-japan")
+
+	g.POST("/sign-up", h.SignIn)
+	g.POST("/login", h.Login)
 }
 
 // SignIn creates account for a user.
 // TODO: verify email address is valid
 func (h AuthHandler) SignIn(c echo.Context) error {
-	email := c.FormValue("email")
-	if email == "" {
-		return c.JSON(http.StatusBadRequest, "email param should not be empty")
+	code := c.FormValue("code")
+	if code == "" {
+		return c.JSON(http.StatusBadRequest, "code param should not be empty")
 	}
 
-	_, err := h.Usecase.SignIn(email)
+	err := h.Usecase.SignUp(&usecase.YahooJapanAuthenticationInformation{Token: code})
 
 	if _, ok := err.(infrastructure.DuplicateError); ok {
 		return c.JSON(http.StatusBadRequest, "user is already registered.")
@@ -45,12 +48,12 @@ func (h AuthHandler) SignIn(c echo.Context) error {
 
 // Login creates session for user.
 func (h AuthHandler) Login(c echo.Context) error {
-	email := c.FormValue("email")
-	if email == "" {
-		return c.JSON(http.StatusBadRequest, "email param should not be empty")
+	code := c.FormValue("code")
+	if code == "" {
+		return c.JSON(http.StatusBadRequest, "code param should not be empty")
 	}
 
-	token, err := h.Usecase.Login(email)
+	token, err := h.Usecase.Login(&usecase.YahooJapanAuthenticationInformation{Token: code})
 	if errors.Is(err, infrastructure.NotFoundError{}) {
 		return c.JSON(http.StatusBadRequest, "user is not registered")
 	}

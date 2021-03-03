@@ -1,7 +1,10 @@
 package main
 
 import (
+	usecase2 "atwell/authentication/usecase"
+	"atwell/config"
 	"atwell/infrastructure"
+	infrastructure2 "atwell/infrastructure/api"
 	"atwell/repository"
 	"atwell/usecase"
 	"atwell/web/handler"
@@ -16,8 +19,17 @@ func handleRequests(db *gorm.DB, e *echo.Echo) {
 	th := handler.TweetHandler{Usecase: tu}
 	handler.HandleTweetRequest(th, e)
 
-	uu := usecase.NewAuthUsecase(repository.NewMysqlUserRepository(db))
-	uh := handler.AuthHandler{Usecase: uu}
+	c, err := config.GetYahooAuthConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	yEmailUsecase := usecase2.NewYahooJapanGetUserEmailUsecase(
+		&infrastructure2.YahooJapanAuthAPI{Conf: c},
+	)
+	userRepo := repository.NewMysqlUserRepository(db)
+	authUsecase := usecase2.NewAuthenticationUsecase(yEmailUsecase, userRepo)
+	uh := handler.AuthHandler{Usecase: authUsecase}
 	handler.HandleAuthRequest(uh, e)
 
 	log.Fatal(e.Start(":10000"))
