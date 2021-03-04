@@ -25,14 +25,13 @@ func HandleAuthRequest(h AuthHandler, e *echo.Echo) {
 }
 
 // SignIn creates account for a user.
-// TODO: verify email address is valid
 func (h AuthHandler) SignIn(c echo.Context) error {
 	code := c.FormValue("code")
 	if code == "" {
 		return c.JSON(http.StatusBadRequest, "code param should not be empty")
 	}
 
-	err := h.Usecase.SignUp(&usecase.YahooJapanAuthenticationInformation{Token: code})
+	err := h.Usecase.SignUp(&usecase.YahooJapanAuthenticationInformation{Code: code})
 
 	if _, ok := err.(infrastructure.DuplicateError); ok {
 		return c.JSON(http.StatusBadRequest, "user is already registered.")
@@ -53,7 +52,7 @@ func (h AuthHandler) Login(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, "code param should not be empty")
 	}
 
-	token, err := h.Usecase.Login(&usecase.YahooJapanAuthenticationInformation{Token: code})
+	token, err := h.Usecase.Login(&usecase.YahooJapanAuthenticationInformation{Code: code})
 	if errors.Is(err, infrastructure.NotFoundError{}) {
 		return c.JSON(http.StatusBadRequest, "user is not registered")
 	}

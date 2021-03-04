@@ -1,9 +1,12 @@
 package usecase
 
 import (
+	"atwell/config"
 	"atwell/domain"
 	"crypto/rsa"
+	"crypto/sha256"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
 	"errors"
@@ -11,6 +14,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
+
+	"github.com/dgrijalva/jwt-go"
 )
 
 type YahooJapanGetUserEmailUsecase struct {
@@ -24,7 +30,7 @@ type YahooJapanAuthInfrastructure interface {
 }
 
 type YahooJapanAuthenticationInformation struct {
-	Token string
+	Code string
 }
 
 // DummyMethod is just dummy method for confirming to implement AuthenticationInformation
@@ -40,46 +46,20 @@ func (u *YahooJapanGetUserEmailUsecase) GetEmail(authInfo domain.AuthenticationI
 		return "", errors.New("auth information type is not YahooJapanAuthenticationInformation")
 	}
 
-	tokenData, err := u.GetToken(i.Token)
+	tokenData, err := u.getToken(i.Code)
 	if err != nil {
 		return "", err
 	}
 
-	res, err := u.infra.UserInfo(tokenData.AccessToken)
+	err = u.verifyToken(tokenData, i.Code)
 	if err != nil {
 		return "", err
 	}
 
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return "", err
-	}
-
-	if res.StatusCode != http.StatusOK {
-		var errorResponse YahooJapanAPIErrorResponse
-		err = json.Unmarshal(body, &errorResponse)
-		if err != nil {
-			return "", err
-		}
-
-		return "", fmt.Errorf(
-			"failed to get user info by yahoo japan api. Error: %s, ErrorDescription: %s, ErrorCode: %d",
-			errorResponse.Error,
-			errorResponse.ErrorDescription,
-			errorResponse.ErrorCode,
-		)
-	}
-
-	var response UserInfoResponse
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		return "", err
-	}
-
-	return response.Email, nil
+	return u.getEmailByToken(tokenData.AccessToken)
 }
 
-func (u YahooJapanGetUserEmailUsecase) GetToken(code string) (TokenAPIResponse, error) {
+func (u *YahooJapanGetUserEmailUsecase) getToken(code string) (TokenAPIResponse, error) {
 	res, err := u.infra.Token(code)
 	if err != nil {
 		return TokenAPIResponse{}, err
@@ -98,7 +78,7 @@ func (u YahooJapanGetUserEmailUsecase) GetToken(code string) (TokenAPIResponse, 
 		}
 
 		return TokenAPIResponse{}, fmt.Errorf(
-			"failed to get ID Token. Error: %s, ErrorDescription: %s, ErrorCode: %d",
+			"failed to get ID Code. Error: %s, ErrorDescription: %s, ErrorCode: %d",
 			tokenErrorResponse.Error,
 			tokenErrorResponse.ErrorDescription,
 			tokenErrorResponse.ErrorCode,
@@ -111,12 +91,82 @@ func (u YahooJapanGetUserEmailUsecase) GetToken(code string) (TokenAPIResponse, 
 		return TokenAPIResponse{}, err
 	}
 
-	// TODO: verify Token
-
 	return tokenResponse, nil
 }
 
-func (u *YahooJapanGetUserEmailUsecase) GetPublicKey(publicKeyID string) (*rsa.PublicKey, error) {
+func (u *YahooJapanGetUserEmailUsecase) verifyToken(tokenData TokenAPIResponse, code string) error {
+	// verify signature
+	header := strings.Split(tokenData.IDToken, ".")[0]
+	decodedHeader, err := base64.RawURLEncoding.DecodeString(header)
+
+	var idTokenHeader IDTokenHeader
+	err = json.Unmarshal(decodedHeader, &idTokenHeader)
+
+	publicKey, err := u.getPublicKey(idTokenHeader.Kid)
+	if err != nil {
+		return err
+	}
+	_, err = jwt.Parse(tokenData.IDToken, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
+			err := errors.New("unexpected signing method")
+			return nil, err
+		}
+
+		return publicKey, nil
+	})
+	if err != nil {
+		return err
+	}
+
+	// verify iss
+	payload := strings.Split(tokenData.IDToken, ".")[1]
+	decodedPayload, err := base64.RawURLEncoding.DecodeString(payload)
+	var idTokenPayload IDTokenPayload
+	err = json.Unmarshal(decodedPayload, &idTokenPayload)
+	if err != nil {
+		return err
+	}
+
+	if idTokenPayload.Iss != "https://auth.login.yahoo.co.jp/yconnect/v2" {
+		return errors.New("iss value does not match")
+	}
+
+	// verify aud
+	conf, err := config.GetYahooAuthConfig() // TODO: inject from outer
+	if err != nil {
+		return err
+	}
+
+	for _, id := range idTokenPayload.Aud {
+		if id != conf.ClientID {
+			return errors.New("aud value does not match")
+		}
+	}
+
+	// TODO: verify nonce
+
+	// verify access token hash
+	b := sha256.Sum256([]byte(tokenData.AccessToken))
+	encodedHash := base64.URLEncoding.EncodeToString(b[:len(b)/2])
+	if encodedHash[:len(encodedHash)-2] != idTokenPayload.AtHash {
+		return errors.New("access token hash does not match")
+	}
+
+	// verify expiration date
+	if int64(idTokenPayload.Exp) < time.Now().Unix() {
+		return errors.New("token is expired")
+	}
+
+	// verify iat
+	const AuthenticationTime = 600 // TODO: move to another place
+	if time.Now().Unix()-int64(idTokenPayload.Iat) > AuthenticationTime {
+		return errors.New("token is expired")
+	}
+
+	return nil
+}
+
+func (u *YahooJapanGetUserEmailUsecase) getPublicKey(publicKeyID string) (*rsa.PublicKey, error) {
 	res, err := u.infra.GetPublicKeyList()
 	if err != nil {
 		return nil, err
@@ -179,12 +229,47 @@ func (u *YahooJapanGetUserEmailUsecase) GetPublicKey(publicKeyID string) (*rsa.P
 	return nil, errors.New("publicKeyID does not match")
 }
 
+func (u *YahooJapanGetUserEmailUsecase) getEmailByToken(accessToken string) (email string, err error) {
+	res, err := u.infra.UserInfo(accessToken)
+	if err != nil {
+		return "", err
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+
+	if res.StatusCode != http.StatusOK {
+		var errorResponse YahooJapanAPIErrorResponse
+		err = json.Unmarshal(body, &errorResponse)
+		if err != nil {
+			return "", err
+		}
+
+		return "", fmt.Errorf(
+			"failed to get user info by yahoo japan api. Error: %s, ErrorDescription: %s, ErrorCode: %d",
+			errorResponse.Error,
+			errorResponse.ErrorDescription,
+			errorResponse.ErrorCode,
+		)
+	}
+
+	var response UserInfoResponse
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return "", err
+	}
+
+	return response.Email, nil
+}
+
 type PublicKey struct {
 	KeyID string
 	Key   *rsa.PublicKey
 }
 
-// TokenAPIResponse is struct of yahoo japan Token api response.
+// TokenAPIResponse is struct of yahoo japan Code api response.
 type TokenAPIResponse struct {
 	AccessToken  string `json:"access_token"`
 	TokenType    string `json:"token_type"`
@@ -205,4 +290,22 @@ type YahooJapanAPIErrorResponse struct {
 	Error            string `json:"error"`
 	ErrorDescription string `json:"error_description"`
 	ErrorCode        int    `json:"error_code"`
+}
+
+type IDTokenHeader struct {
+	Typ string `json:"typ"`
+	Alg string `json:"alg"`
+	Kid string `json:"kid"`
+}
+
+type IDTokenPayload struct {
+	Iss      string   `json:"iss"`
+	Sub      string   `json:"sub"`
+	Aud      []string `json:"aud"`
+	Exp      int      `json:"exp"`
+	Iat      int      `json:"iat"`
+	Amr      []string `json:"amr"`
+	Nonce    string   `json:"nonce"`
+	AuthTime int      `json:"auth_time"`
+	AtHash   string   `json:"at_hash"`
 }

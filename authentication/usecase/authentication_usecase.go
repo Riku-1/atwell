@@ -36,7 +36,7 @@ func (a *AuthenticationUsecase) SignUp(authInfo domain.AuthenticationInformation
 	return nil
 }
 
-// Login gets user email address and returns auth Token.
+// Login gets user email address and returns auth Code.
 func (a *AuthenticationUsecase) Login(authInfo domain.AuthenticationInformation) (token string, err error) {
 	email, err := a.getEmailUsecase.GetEmail(authInfo)
 	if err != nil {
@@ -48,7 +48,7 @@ func (a *AuthenticationUsecase) Login(authInfo domain.AuthenticationInformation)
 		return "", err
 	}
 
-	// return atwell Token for session
+	// return atwell Code for session
 	atwellToken := jwt.New(jwt.SigningMethodHS256)
 	claims := atwellToken.Claims.(jwt.MapClaims)
 	claims["email"] = user.Email
