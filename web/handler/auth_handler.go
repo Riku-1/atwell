@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"atwell/config"
 	"atwell/domain"
 	"atwell/infrastructure"
 	"errors"
@@ -19,9 +20,10 @@ type AuthHandler struct {
 
 func HandleAuthRequest(h AuthHandler, e *echo.Echo) {
 	g := e.Group("/yahoo-japan")
+	c, _ := config.GetAppConfig() // TODO: constructor injection
 
-	g.POST("/sign-up", h.SignIn, middleware.JWT([]byte("secret")))
-	g.POST("/login", h.Login, middleware.JWT([]byte("secret")))
+	g.POST("/sign-up", h.SignIn, middleware.JWT([]byte(c.Secret)))
+	g.POST("/login", h.Login, middleware.JWT([]byte(c.Secret)))
 	g.POST("/before-login", h.BeforeLogin)
 }
 

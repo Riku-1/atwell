@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"atwell/config"
 	"atwell/domain"
 	"time"
 
@@ -59,5 +60,6 @@ func (a *AuthenticationUsecase) Login(code string, nonce string) (token string, 
 	claims["email"] = user.Email
 	claims["exp"] = time.Now().Add(time.Hour * 24).Unix() // TODO
 
-	return atwellToken.SignedString([]byte("secret"))
+	c, _ := config.GetAppConfig() // TODO: constructor injection
+	return atwellToken.SignedString([]byte(c.Secret))
 }

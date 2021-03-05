@@ -44,7 +44,8 @@ func (u *YahooJapanGetUserEmailUsecase) BeforeLogin(nonce string) (token string,
 	claims["yahoo_japan_nonce"] = nonce
 	claims["exp"] = time.Now().Add(time.Minute * 10).Unix() // TODO
 
-	return tokenJWT.SignedString([]byte("secret"))
+	c, _ := config.GetAppConfig() // TODO: constructor injection
+	return tokenJWT.SignedString([]byte(c.Secret))
 }
 
 func (u *YahooJapanGetUserEmailUsecase) GetEmail(code string, nonce string) (email string, err error) {
