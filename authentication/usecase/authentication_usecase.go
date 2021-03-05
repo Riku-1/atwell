@@ -36,6 +36,11 @@ func (a *AuthenticationUsecase) SignUp(authInfo domain.AuthenticationInformation
 	return nil
 }
 
+// PrepareLogin returns token which contains nonce value.
+func (a *AuthenticationUsecase) PrepareLogin(nonce string) (token string, err error) {
+	return a.getEmailUsecase.PrepareLogin(nonce)
+}
+
 // Login gets user email address and returns auth Code.
 func (a *AuthenticationUsecase) Login(authInfo domain.AuthenticationInformation) (token string, err error) {
 	email, err := a.getEmailUsecase.GetEmail(authInfo)
@@ -52,7 +57,7 @@ func (a *AuthenticationUsecase) Login(authInfo domain.AuthenticationInformation)
 	atwellToken := jwt.New(jwt.SigningMethodHS256)
 	claims := atwellToken.Claims.(jwt.MapClaims)
 	claims["email"] = user.Email
-	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
+	claims["exp"] = time.Now().Add(time.Hour * 24).Unix() // TODO
 
 	return atwellToken.SignedString([]byte("secret"))
 }

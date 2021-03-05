@@ -28,10 +28,12 @@ type AuthenticationInformation interface {
 // AuthenticationUsecase is a interface for authentication
 type AuthenticationUsecase interface {
 	SignUp(authInfo AuthenticationInformation) error
+	PrepareLogin(nonce string) (token string, err error)
 	Login(authInfo AuthenticationInformation) (token string, err error)
 }
 
 // GetUserEmailUsecase is a interface of usecase for get user email.
 type GetUserEmailUsecase interface {
 	GetEmail(authInfo AuthenticationInformation) (email string, err error)
+	PrepareLogin(nonce string) (token string, err error)
 }

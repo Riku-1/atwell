@@ -40,6 +40,20 @@ func NewYahooJapanGetUserEmailUsecase(infra YahooJapanAuthInfrastructure) domain
 	return &YahooJapanGetUserEmailUsecase{infra: infra}
 }
 
+// PrepareLogin creates and returns token which contains nonce value.
+func (u *YahooJapanGetUserEmailUsecase) PrepareLogin(nonce string) (token string, err error) {
+	if nonce == "" {
+		return "", errors.New("nonce should not be empty")
+	}
+
+	tokenJWT := jwt.New(jwt.SigningMethodHS256)
+	claims := tokenJWT.Claims.(jwt.MapClaims)
+	claims["yahoo_japan_nonce"] = nonce
+	claims["exp"] = time.Now().Add(time.Minute * 10).Unix() // TODO
+
+	return tokenJWT.SignedString([]byte("secret"))
+}
+
 func (u *YahooJapanGetUserEmailUsecase) GetEmail(authInfo domain.AuthenticationInformation) (email string, err error) {
 	i, ok := authInfo.(*YahooJapanAuthenticationInformation)
 	if !ok {
