@@ -29,19 +29,12 @@ type YahooJapanAuthInfrastructure interface {
 	UserInfo(accessToken string) (*http.Response, error)
 }
 
-type YahooJapanAuthenticationInformation struct {
-	Code string
-}
-
-// DummyMethod is just dummy method for confirming to implement AuthenticationInformation
-func (i *YahooJapanAuthenticationInformation) DummyMethod() {}
-
 func NewYahooJapanGetUserEmailUsecase(infra YahooJapanAuthInfrastructure) domain.GetUserEmailUsecase {
 	return &YahooJapanGetUserEmailUsecase{infra: infra}
 }
 
-// PrepareLogin creates and returns token which contains nonce value.
-func (u *YahooJapanGetUserEmailUsecase) PrepareLogin(nonce string) (token string, err error) {
+// BeforeLogin creates and returns token which contains nonce value.
+func (u *YahooJapanGetUserEmailUsecase) BeforeLogin(nonce string) (token string, err error) {
 	if nonce == "" {
 		return "", errors.New("nonce should not be empty")
 	}
@@ -54,18 +47,14 @@ func (u *YahooJapanGetUserEmailUsecase) PrepareLogin(nonce string) (token string
 	return tokenJWT.SignedString([]byte("secret"))
 }
 
-func (u *YahooJapanGetUserEmailUsecase) GetEmail(authInfo domain.AuthenticationInformation) (email string, err error) {
-	i, ok := authInfo.(*YahooJapanAuthenticationInformation)
-	if !ok {
-		return "", errors.New("auth information type is not YahooJapanAuthenticationInformation")
-	}
+func (u *YahooJapanGetUserEmailUsecase) GetEmail(code string, nonce string) (email string, err error) {
 
-	tokenData, err := u.getToken(i.Code)
+	tokenData, err := u.getToken(code)
 	if err != nil {
 		return "", err
 	}
 
-	err = u.verifyToken(tokenData, i.Code)
+	err = u.verifyToken(tokenData, nonce)
 	if err != nil {
 		return "", err
 	}
@@ -108,7 +97,7 @@ func (u *YahooJapanGetUserEmailUsecase) getToken(code string) (TokenAPIResponse,
 	return tokenResponse, nil
 }
 
-func (u *YahooJapanGetUserEmailUsecase) verifyToken(tokenData TokenAPIResponse, code string) error {
+func (u *YahooJapanGetUserEmailUsecase) verifyToken(tokenData TokenAPIResponse, nonce string) error {
 	// verify signature
 	header := strings.Split(tokenData.IDToken, ".")[0]
 	decodedHeader, err := base64.RawURLEncoding.DecodeString(header)
@@ -157,7 +146,10 @@ func (u *YahooJapanGetUserEmailUsecase) verifyToken(tokenData TokenAPIResponse, 
 		}
 	}
 
-	// TODO: verify nonce
+	// verify nonce
+	if idTokenPayload.Nonce != nonce {
+		return errors.New("nonce does not match")
+	}
 
 	// verify access token hash
 	b := sha256.Sum256([]byte(tokenData.AccessToken))

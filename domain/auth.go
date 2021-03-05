@@ -19,21 +19,15 @@ type IDTokenPayload struct {
 	CHash    string   `json:"c_hash"`
 }
 
-// AuthenticationInformation is a interface of information for getting user email address.
-type AuthenticationInformation interface {
-	// DummyMethod is just dummy method for confirming to implement AuthenticationInformation
-	DummyMethod()
-}
-
 // AuthenticationUsecase is a interface for authentication
 type AuthenticationUsecase interface {
-	SignUp(authInfo AuthenticationInformation) error
-	PrepareLogin(nonce string) (token string, err error)
-	Login(authInfo AuthenticationInformation) (token string, err error)
+	SignUp(code string, nonce string) error
+	BeforeLogin(nonce string) (token string, err error)
+	Login(code string, nonce string) (token string, err error)
 }
 
 // GetUserEmailUsecase is a interface of usecase for get user email.
 type GetUserEmailUsecase interface {
-	GetEmail(authInfo AuthenticationInformation) (email string, err error)
-	PrepareLogin(nonce string) (token string, err error)
+	GetEmail(code string, nonce string) (email string, err error)
+	BeforeLogin(nonce string) (token string, err error)
 }
