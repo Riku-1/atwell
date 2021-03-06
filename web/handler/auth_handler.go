@@ -3,7 +3,7 @@ package handler
 import (
 	"atwell/config"
 	"atwell/domain"
-	"atwell/infrastructure"
+	"atwell/infrastructure/db"
 	"atwell/web"
 	"errors"
 	"github.com/dgrijalva/jwt-go"
@@ -54,7 +54,7 @@ func (h AuthHandler) SignUp(c echo.Context) error {
 
 	err := h.Usecase.SignUp(code, nonce)
 
-	if _, ok := err.(infrastructure.DuplicateError); ok {
+	if _, ok := err.(db.DuplicateError); ok {
 		return c.JSON(http.StatusBadRequest, web.ErrorResponse{
 			Message: "user is already registered.",
 			Code:    web.UserIsAlreadyRegistered,
@@ -97,7 +97,7 @@ func (h AuthHandler) Login(c echo.Context) error {
 	}
 
 	token, err := h.Usecase.Login(code, nonce)
-	if errors.Is(err, infrastructure.NotFoundError{}) {
+	if errors.Is(err, db.NotFoundError{}) {
 		return c.JSON(http.StatusBadRequest, web.ErrorResponse{
 			Message: "user is not registered",
 			Code:    web.UserIsNotRegistered,

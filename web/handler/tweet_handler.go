@@ -3,7 +3,7 @@ package handler
 import (
 	"atwell/config"
 	"atwell/domain"
-	"atwell/infrastructure"
+	"atwell/infrastructure/db"
 	"errors"
 	"net/http"
 	"strconv"
@@ -103,7 +103,7 @@ func (h TweetHandler) Delete(c echo.Context) error {
 	email := claims["email"].(string)
 
 	err := h.Usecase.Delete(email, uint(id))
-	if errors.Is(infrastructure.NoAuthorizationError{}, err) {
+	if errors.Is(db.NoAuthorizationError{}, err) {
 		return c.NoContent(http.StatusForbidden)
 	}
 

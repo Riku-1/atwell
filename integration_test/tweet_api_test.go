@@ -1,10 +1,11 @@
-package handler
+package integration_test
 
 import (
+	"atwell/config"
 	"atwell/domain"
-	"atwell/infrastructure"
-	"atwell/repository"
-	"atwell/usecase"
+	"atwell/tweet/repository"
+	"atwell/tweet/usecase"
+	handler2 "atwell/web/handler"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -20,7 +21,7 @@ import (
 )
 
 func TestTweetHandler_Get(t *testing.T) {
-	db, err := infrastructure.GetDevGormDB()
+	db, err := config.GetDevGormDB()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -34,7 +35,7 @@ func TestTweetHandler_Get(t *testing.T) {
 		repository.NewMysqlTweetRepository(tx),
 		repository.NewMysqlUserRepository(tx),
 	)
-	handler := TweetHandler{Usecase: u}
+	handler := handler2.TweetHandler{Usecase: u}
 
 	// create user and tweets
 	email := "tweet_handler_get_test@email.com"
@@ -93,7 +94,7 @@ func TestTweetHandler_Get(t *testing.T) {
 }
 
 func TestTweetHandler_Get_NoLogin(t *testing.T) {
-	db, err := infrastructure.GetDevGormDB()
+	db, err := config.GetDevGormDB()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -107,7 +108,7 @@ func TestTweetHandler_Get_NoLogin(t *testing.T) {
 		repository.NewMysqlTweetRepository(tx),
 		repository.NewMysqlUserRepository(tx),
 	)
-	handler := TweetHandler{Usecase: u}
+	handler := handler2.TweetHandler{Usecase: u}
 
 	// create user and tweets
 	email := "tweet_handler_get_test@email.com"
@@ -140,7 +141,7 @@ func TestTweetHandler_Get_NoLogin(t *testing.T) {
 }
 
 func TestTweetHandler_Create(t *testing.T) {
-	db, err := infrastructure.GetDevGormDB()
+	db, err := config.GetDevGormDB()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -154,7 +155,7 @@ func TestTweetHandler_Create(t *testing.T) {
 		repository.NewMysqlTweetRepository(tx),
 		repository.NewMysqlUserRepository(tx),
 	)
-	handler := TweetHandler{Usecase: u}
+	handler := handler2.TweetHandler{Usecase: u}
 
 	// create user
 	email := "tweet_handler_get_test@email.com"
@@ -209,7 +210,7 @@ func TestTweetHandler_Create(t *testing.T) {
 }
 
 func TestTweetHandler_Create_WithEmptyComment(t *testing.T) {
-	db, err := infrastructure.GetDevGormDB()
+	db, err := config.GetDevGormDB()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -223,7 +224,7 @@ func TestTweetHandler_Create_WithEmptyComment(t *testing.T) {
 		repository.NewMysqlTweetRepository(tx),
 		repository.NewMysqlUserRepository(tx),
 	)
-	handler := TweetHandler{Usecase: u}
+	handler := handler2.TweetHandler{Usecase: u}
 
 	// create user
 	email := "tweet_handler_get_test@email.com"
@@ -268,7 +269,7 @@ func TestTweetHandler_Create_WithEmptyComment(t *testing.T) {
 }
 
 func TestTweetHandler_Create_WithNoLogin(t *testing.T) {
-	db, err := infrastructure.GetDevGormDB()
+	db, err := config.GetDevGormDB()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -282,7 +283,7 @@ func TestTweetHandler_Create_WithNoLogin(t *testing.T) {
 		repository.NewMysqlTweetRepository(tx),
 		repository.NewMysqlUserRepository(tx),
 	)
-	handler := TweetHandler{Usecase: u}
+	handler := handler2.TweetHandler{Usecase: u}
 
 	// set request with no login
 	e := echo.New()
@@ -304,7 +305,7 @@ func TestTweetHandler_Create_WithNoLogin(t *testing.T) {
 }
 
 func TestTweetHandler_Delete(t *testing.T) {
-	db, err := infrastructure.GetDevGormDB()
+	db, err := config.GetDevGormDB()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -318,7 +319,7 @@ func TestTweetHandler_Delete(t *testing.T) {
 		repository.NewMysqlTweetRepository(tx),
 		repository.NewMysqlUserRepository(tx),
 	)
-	handler := TweetHandler{Usecase: u}
+	handler := handler2.TweetHandler{Usecase: u}
 
 	// create user and tweet
 	email := "tweet_handler_get_test@email.com"
@@ -371,7 +372,7 @@ func TestTweetHandler_Delete(t *testing.T) {
 }
 
 func TestTweetHandler_Delete_WithNoLogin(t *testing.T) {
-	db, err := infrastructure.GetDevGormDB()
+	db, err := config.GetDevGormDB()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -385,7 +386,7 @@ func TestTweetHandler_Delete_WithNoLogin(t *testing.T) {
 		repository.NewMysqlTweetRepository(tx),
 		repository.NewMysqlUserRepository(tx),
 	)
-	handler := TweetHandler{Usecase: u}
+	handler := handler2.TweetHandler{Usecase: u}
 
 	// create user and tweet
 	email := "tweet_handler_get_test@email.com"
@@ -418,7 +419,7 @@ func TestTweetHandler_Delete_WithNoLogin(t *testing.T) {
 }
 
 func TestTweetHandler_Delete_ByNotOwner(t *testing.T) {
-	db, err := infrastructure.GetDevGormDB()
+	db, err := config.GetDevGormDB()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -432,7 +433,7 @@ func TestTweetHandler_Delete_ByNotOwner(t *testing.T) {
 		repository.NewMysqlTweetRepository(tx),
 		repository.NewMysqlUserRepository(tx),
 	)
-	handler := TweetHandler{Usecase: u}
+	handler := handler2.TweetHandler{Usecase: u}
 
 	// create user1 and tweet
 	user1 := domain.User{

@@ -3,10 +3,9 @@ package main
 import (
 	usecase2 "atwell/authentication/usecase"
 	"atwell/config"
-	"atwell/infrastructure"
 	infrastructure2 "atwell/infrastructure/api"
-	"atwell/repository"
-	"atwell/usecase"
+	"atwell/tweet/repository"
+	"atwell/tweet/usecase"
 	"atwell/web/handler"
 	"log"
 
@@ -42,7 +41,7 @@ func handleRequests(db *gorm.DB, e *echo.Echo) {
 // @in header
 // @name Authorization
 func main() {
-	db, err := infrastructure.GetPrdGormDB()
+	db, err := config.GetPrdGormDB()
 	if err != nil {
 		log.Fatal(err)
 	}
