@@ -1,10 +1,11 @@
-package handler
+package integration_test
 
 import (
+	"atwell/config"
 	"atwell/domain"
-	"atwell/infrastructure"
-	"atwell/repository"
-	"atwell/usecase"
+	"atwell/tweet/repository"
+	"atwell/tweet/usecase"
+	"atwell/web/handler"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -17,14 +18,14 @@ import (
 	"gorm.io/gorm"
 )
 
-func getAuthHandler(db *gorm.DB) AuthHandler {
+func getAuthHandler(db *gorm.DB) handler.AuthHandler {
 	r := repository.NewMysqlUserRepository(db)
 	u := usecase.NewAuthUsecase(r)
-	return AuthHandler{Usecase: u}
+	return handler.AuthHandler{Usecase: u}
 }
 
 func TestAuthHandler_SignIn(t *testing.T) {
-	db, err := infrastructure.GetDevGormDB()
+	db, err := config.GetDevGormDB()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -45,7 +46,7 @@ func TestAuthHandler_SignIn(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	c.SetPath("/sign-in")
-	err = h.SignIn(c)
+	err = h.SignUp(c)
 	if err != nil {
 		tx.Rollback()
 		t.Fatal(err)
@@ -60,7 +61,7 @@ func TestAuthHandler_SignIn(t *testing.T) {
 }
 
 func TestAuthHandler_SignIn_WhenEmailIsEmpty(t *testing.T) {
-	db, err := infrastructure.GetDevGormDB()
+	db, err := config.GetDevGormDB()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -81,7 +82,7 @@ func TestAuthHandler_SignIn_WhenEmailIsEmpty(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	c.SetPath("/sign-in")
-	err = h.SignIn(c)
+	err = h.SignUp(c)
 	if err != nil {
 		tx.Rollback()
 		t.Fatal(err)
@@ -92,7 +93,7 @@ func TestAuthHandler_SignIn_WhenEmailIsEmpty(t *testing.T) {
 }
 
 func TestAuthHandler_SignIn_DuplicateUser(t *testing.T) {
-	db, err := infrastructure.GetDevGormDB()
+	db, err := config.GetDevGormDB()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -113,7 +114,7 @@ func TestAuthHandler_SignIn_DuplicateUser(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	c.SetPath("/sign-in")
-	err = h.SignIn(c)
+	err = h.SignUp(c)
 	if err != nil {
 		tx.Rollback()
 		t.Fatal(err)
@@ -125,7 +126,7 @@ func TestAuthHandler_SignIn_DuplicateUser(t *testing.T) {
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 	c.SetPath("/sign-in")
-	err = h.SignIn(c)
+	err = h.SignUp(c)
 	if err != nil {
 		tx.Rollback()
 		t.Fatal(err)
@@ -137,7 +138,7 @@ func TestAuthHandler_SignIn_DuplicateUser(t *testing.T) {
 }
 
 func TestAuthHandler_Login(t *testing.T) {
-	db, err := infrastructure.GetDevGormDB()
+	db, err := config.GetDevGormDB()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -154,7 +155,7 @@ func TestAuthHandler_Login(t *testing.T) {
 
 	// request
 	e := echo.New()
-	HandleAuthRequest(h, e)
+	handler.HandleAuthRequest(h, e)
 	f := make(url.Values)
 	f.Set("email", email)
 
@@ -182,7 +183,7 @@ func TestAuthHandler_Login(t *testing.T) {
 }
 
 func TestAuthHandler_Login_WhenEmailIsEmpty(t *testing.T) {
-	db, err := infrastructure.GetDevGormDB()
+	db, err := config.GetDevGormDB()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -209,7 +210,7 @@ func TestAuthHandler_Login_WhenEmailIsEmpty(t *testing.T) {
 }
 
 func TestAuthHandler_Login_ByNoRegisteredUser(t *testing.T) {
-	db, err := infrastructure.GetDevGormDB()
+	db, err := config.GetDevGormDB()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -221,7 +222,7 @@ func TestAuthHandler_Login_ByNoRegisteredUser(t *testing.T) {
 
 	// request
 	e := echo.New()
-	HandleAuthRequest(h, e)
+	handler.HandleAuthRequest(h, e)
 	f := make(url.Values)
 	f.Set("email", "no_registered_user@email.com") // login by no registered user
 

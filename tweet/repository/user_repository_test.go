@@ -1,15 +1,16 @@
 package repository
 
 import (
+	"atwell/config"
 	"atwell/domain"
-	"atwell/infrastructure"
+	db2 "atwell/infrastructure/db"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestMysqlUserRepository_Create(t *testing.T) {
-	db, err := infrastructure.GetDevGormDB()
+	db, err := config.GetDevGormDB()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,7 +38,7 @@ func TestMysqlUserRepository_Create(t *testing.T) {
 }
 
 func TestMysqlUserRepository_Create_WhenCrateDuplicateUser(t *testing.T) {
-	db, err := infrastructure.GetDevGormDB()
+	db, err := config.GetDevGormDB()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -57,11 +58,11 @@ func TestMysqlUserRepository_Create_WhenCrateDuplicateUser(t *testing.T) {
 
 	// create user which email is already registered
 	_, err = r.Create("test_duplicate_user@email.com")
-	assert.IsType(t, infrastructure.DuplicateError{}, err)
+	assert.IsType(t, db2.DuplicateError{}, err)
 }
 
 func TestMysqlUserRepository_Get(t *testing.T) {
-	db, err := infrastructure.GetPrdGormDB()
+	db, err := config.GetPrdGormDB()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -87,7 +88,7 @@ func TestMysqlUserRepository_Get(t *testing.T) {
 }
 
 func TestMysqlUserRepository_Get_NoExistUser(t *testing.T) {
-	db, err := infrastructure.GetPrdGormDB()
+	db, err := config.GetPrdGormDB()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -99,5 +100,5 @@ func TestMysqlUserRepository_Get_NoExistUser(t *testing.T) {
 
 	email := "create_test_user@email.com"
 	_, err = r.Get(email)
-	assert.IsType(t, infrastructure.NotFoundError{}, err)
+	assert.IsType(t, db2.NotFoundError{}, err)
 }

@@ -1,8 +1,9 @@
 package repository
 
 import (
+	"atwell/config"
 	"atwell/domain"
-	"atwell/infrastructure"
+	db2 "atwell/infrastructure/db"
 	"testing"
 	"time"
 
@@ -10,7 +11,7 @@ import (
 )
 
 func TestMysqlTweetRepository_Get(t *testing.T) {
-	db, err := infrastructure.GetDevGormDB()
+	db, err := config.GetDevGormDB()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -40,7 +41,7 @@ func TestMysqlTweetRepository_Get(t *testing.T) {
 }
 
 func TestCreate(t *testing.T) {
-	db, err := infrastructure.GetDevGormDB()
+	db, err := config.GetDevGormDB()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -67,7 +68,7 @@ func TestCreate(t *testing.T) {
 }
 
 func TestMysqlTweetRepository_Delete(t *testing.T) {
-	db, err := infrastructure.GetDevGormDB()
+	db, err := config.GetDevGormDB()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -104,7 +105,7 @@ func TestMysqlTweetRepository_Delete(t *testing.T) {
 }
 
 func TestMysqlTweetRepository_Delete_ByNotOwner(t *testing.T) {
-	db, err := infrastructure.GetDevGormDB()
+	db, err := config.GetDevGormDB()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -136,5 +137,5 @@ func TestMysqlTweetRepository_Delete_ByNotOwner(t *testing.T) {
 	r := NewMysqlTweetRepository(tx)
 	err = r.Delete(user2, tweet.ID)
 
-	assert.IsType(t, infrastructure.NoAuthorizationError{}, err)
+	assert.IsType(t, db2.NoAuthorizationError{}, err)
 }

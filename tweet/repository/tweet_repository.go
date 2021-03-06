@@ -2,7 +2,7 @@ package repository
 
 import (
 	"atwell/domain"
-	"atwell/infrastructure"
+	"atwell/infrastructure/db"
 	"time"
 
 	"gorm.io/gorm"
@@ -50,7 +50,7 @@ func (r mysqlTweetRepository) Delete(user domain.User, id uint) error {
 
 	// HACK: Do in usecase
 	if tweet.UserID != user.ID {
-		return infrastructure.NoAuthorizationError{}
+		return db.NoAuthorizationError{}
 	}
 
 	result := r.db.Delete(&domain.Tweet{}, id)

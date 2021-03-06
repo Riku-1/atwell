@@ -22,6 +22,13 @@ definitions:
         description: Valid is true if Time is not NULL
         type: boolean
     type: object
+  web.ErrorResponse:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
 info:
   contact: {}
   description: Atwell is a Twitter for one person.
@@ -103,6 +110,83 @@ paths:
       responses:
         "200":
           description: OK
+      security:
+      - ApiKeyAuth: []
+  /yahoo-japan/before-login:
+    post:
+      consumes:
+      - application/json
+      description: creates temporary session which contains nonce for auth.
+      operationId: post-yahoo-japan-before-login
+      parameters:
+      - description: nonce for yahoo japan authorization
+        in: formData
+        name: nonce
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/web.ErrorResponse'
+  /yahoo-japan/login:
+    post:
+      consumes:
+      - application/json
+      description: login by using yahoo japan authorization.
+      operationId: post-yahoo-japan-login
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: yahoo japan authorization code
+        in: formData
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/web.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+  /yahoo-japan/sign-up:
+    post:
+      consumes:
+      - application/json
+      description: create account for user by using yahoo japan authorization.
+      operationId: post-yahoo-japan-sign-up
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: authorization code
+        in: formData
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/web.ErrorResponse'
       security:
       - ApiKeyAuth: []
 securityDefinitions:

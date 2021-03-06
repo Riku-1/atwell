@@ -2,7 +2,7 @@ package repository
 
 import (
 	"atwell/domain"
-	"atwell/infrastructure"
+	"atwell/infrastructure/db"
 	"strings"
 
 	"gorm.io/gorm"
@@ -25,7 +25,7 @@ func (r mysqlUserRepository) Create(email string) (domain.User, error) {
 	err := r.db.Create(&user).Error
 
 	if err != nil && strings.Contains(err.Error(), "Duplicate entry") {
-		return domain.User{}, infrastructure.DuplicateError{}
+		return domain.User{}, db.DuplicateError{}
 	}
 
 	return user, err
@@ -36,7 +36,7 @@ func (r mysqlUserRepository) Get(email string) (domain.User, error) {
 	var user domain.User
 	err := r.db.Where("email = ?", email).First(&user).Error
 	if err != nil && strings.Contains(err.Error(), "record not found") {
-		return domain.User{}, infrastructure.NotFoundError{}
+		return domain.User{}, db.NotFoundError{}
 	}
 
 	return user, nil
