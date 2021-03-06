@@ -45,7 +45,7 @@ func TestAuthHandler_SignIn(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	c.SetPath("/sign-in")
-	err = h.SignIn(c)
+	err = h.SignUp(c)
 	if err != nil {
 		tx.Rollback()
 		t.Fatal(err)
@@ -81,7 +81,7 @@ func TestAuthHandler_SignIn_WhenEmailIsEmpty(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	c.SetPath("/sign-in")
-	err = h.SignIn(c)
+	err = h.SignUp(c)
 	if err != nil {
 		tx.Rollback()
 		t.Fatal(err)
@@ -113,7 +113,7 @@ func TestAuthHandler_SignIn_DuplicateUser(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	c.SetPath("/sign-in")
-	err = h.SignIn(c)
+	err = h.SignUp(c)
 	if err != nil {
 		tx.Rollback()
 		t.Fatal(err)
@@ -125,7 +125,7 @@ func TestAuthHandler_SignIn_DuplicateUser(t *testing.T) {
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
 	c.SetPath("/sign-in")
-	err = h.SignIn(c)
+	err = h.SignUp(c)
 	if err != nil {
 		tx.Rollback()
 		t.Fatal(err)
